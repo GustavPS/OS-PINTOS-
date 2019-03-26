@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
 int getLength(char* str) {
     char *c = str;
     int stringLength = 0;
-    while(*c != '\0') {
+    while (*c != '\0') {
         stringLength++;
         c++;
     }

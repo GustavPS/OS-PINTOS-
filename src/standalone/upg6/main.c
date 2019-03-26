@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "map.h"
 
@@ -12,7 +13,6 @@
  *
  * valgrind --tool=memcheck ./a.out
  */
-#error Read comments above, then remove this line.
 
 
 /* Can be used to inform compiler about unused parameters (prevent
@@ -68,6 +68,7 @@ int main()
 
   map_init(&container);
 
+
   /* remember to try to insert more values than you map can hold */
   printf("Insert values: ");
   for ( i = 0; i < LOOPS; ++i)
@@ -91,7 +92,9 @@ int main()
     obj = map_find(&container, id);
 
     /*! if it was found, display it */
-YOUR CODE
+    if(obj != NULL) {
+      printf("%s\n", obj);
+    }
   
     /* since we leave the value in the map we may use it again and
      * should not free the memory */
@@ -107,7 +110,10 @@ YOUR CODE
     obj = map_remove(&container, id);
 
     /*! if it was found, display it */
-YOUR CODE
+    if(obj != NULL) {
+      printf("Borttaget: %s\n", obj);
+      free(obj);
+    }
     /* since we removed the value from the map we will never use it again and
      * must properly free the memory (if it was allocated) */
   }
@@ -116,7 +122,8 @@ YOUR CODE
   printf("Will now display all values less than N. Choose N: ");
   scanf("%d", &i);
   map_for_each(&container, print_less, i);
-  
+  printf("\n");
+
   /*! free all remaining memory and remove from map */
   map_remove_if(&container, do_free, 0);
   
