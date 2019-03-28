@@ -13,6 +13,7 @@
 #include "userprog/pagedir.h"
 #include "userprog/process.h"
 #include "devices/input.h"
+#define DBG(format, ...) printf(format "\n", ##__VA_ARGS__)
 
 static void syscall_handler (struct intr_frame *);
 
@@ -45,9 +46,25 @@ static void
 syscall_handler (struct intr_frame *f) 
 {
   int32_t* esp = (int32_t*)f->esp;
-  
-  switch ( 0 /* retrive syscall number */ )
+
+  // *ESP ger vilken interupt som ska köras.
+
+  switch (*esp)
   {
+    case (SYS_HALT):
+    {
+      DBG("# Rad %d i filen %s SYS_HALT interupt", __LINE__, __FILE__);
+      power_off();
+      break;
+    }
+    case (SYS_EXIT):
+    {
+      int exit_code = *(esp+1);
+      struct thread* current = thread_current();
+      DBG("# SYS_EXIT med koden %d på tråden %s med ID: %d", exit_code, current->name, current->tid);
+      thread_exit();
+      break;
+    }
     default:
     {
       printf ("Executed an unknown system call!\n");
