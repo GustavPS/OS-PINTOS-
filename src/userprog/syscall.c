@@ -42,6 +42,70 @@ const int argc[] = {
   0
 };
 
+void halt()
+{
+  DBG("# Rad %d i filen %s SYS_HALT interupt", __LINE__, __FILE__);
+  power_off();
+}
+
+void exit(int32_t* esp)
+{
+  DBG("# SYS_EXIT med koden %d på tråden %s med ID: %d", exit_code, current->name, current->tid);
+  int exit_code = *(esp+1);
+  struct thread* current = thread_current();
+  thread_exit();
+}
+
+int read(int32_t* esp)
+{
+  int fd          = *(esp+1);
+  char *buffer    = (char*) *(esp+2);
+  int length      = *(esp+3);
+  int count       = 0;
+
+  switch (fd)
+  {
+    case (STDIN_FILENO): // Läsa från tangentbordet
+    {
+      char c;
+      while(count < length)
+      {
+        c = input_getc(); // Hämta en karaktär från tangentbordet
+        if(c == '\r') c = '\n';
+        putbuf(&c, 1);    // Skriv karaktären till terminalen
+        *buffer++ = c;      // Ändra värdet i buffern
+        count++;
+      }
+      return count;
+    }
+    default:
+    {
+      return -1;
+    }
+  }
+}
+
+int write(int32_t* esp)
+{
+  int fd          = *(esp+1);
+  char *buffer    = (char*) *(esp+2);
+  int length      = *(esp+3);
+
+  //DBG("# WRITE: DF: %d BUFFER: %s LENGTH %d", fd, buffer, length);
+  switch(fd)
+  {
+    case (STDOUT_FILENO):
+    {
+      putbuf(buffer, length);
+      return length;
+    }
+    default:
+    {
+      return -1;
+    }
+  }
+}
+
 static void
 syscall_handler (struct intr_frame *f) 
 {
@@ -53,16 +117,22 @@ syscall_handler (struct intr_frame *f)
   {
     case (SYS_HALT):
     {
-      DBG("# Rad %d i filen %s SYS_HALT interupt", __LINE__, __FILE__);
-      power_off();
+      halt();
       break;
     }
     case (SYS_EXIT):
     {
-      int exit_code = *(esp+1);
-      struct thread* current = thread_current();
-      DBG("# SYS_EXIT med koden %d på tråden %s med ID: %d", exit_code, current->name, current->tid);
-      thread_exit();
+      exit(esp);
+      break;
+    }
+    case (SYS_READ):
+    {
+      f->eax = read(esp);
+      break;
+    }
+    case (SYS_WRITE):
+    {
+      f->eax = write(esp);
       break;
     }
     default:

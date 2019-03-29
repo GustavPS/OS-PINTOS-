@@ -26,11 +26,11 @@ int main(void)
 
     if (length < 1)
       break;
-    
+
     write(STDOUT_FILENO, buf, length);
     write(STDOUT_FILENO, &endl, 1);
   }
-  
+
   return 0;
 }
 
