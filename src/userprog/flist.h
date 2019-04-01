@@ -64,4 +64,35 @@
  * what size limit that may be appropriate.
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include
+#define PANIC() exit(1)
+
+typedef struct file* value_t;
+typedef int   key_t;
+
+struct node
+{
+  value_t value;
+  key_t key;
+  struct node* next;
+};
+
+void node_init(struct node*, value_t v, key_t k);
+
+struct map
+{
+  struct node* first;
+};
+
+void map_init(struct map*);
+void map_destroy(struct map*);
+key_t map_insert(struct map*, value_t);
+value_t map_find(struct map*, key_t);
+value_t map_remove(struct map*, key_t);
+void map_for_each(struct map*, void (*exec)(key_t, value_t, int), int);
+void map_remove_if(struct map*, bool(*cond)(key_t, value_t, int), int);
+
 #endif
