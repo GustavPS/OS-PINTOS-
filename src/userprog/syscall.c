@@ -42,6 +42,15 @@ const int argc[] = {
   0
 };
 
+// Returns fp or NULL
+struct file* get_file(struct thread* t, int fd)
+{
+  return map_find(&t->open_file_table, fd);
+}
+
+
+
+// FUNCTIONS FOR SYSCALLS
 void halt()
 {
   DBG("# Rad %d i filen %s SYS_HALT interupt", __LINE__, __FILE__);
@@ -80,7 +89,9 @@ int read(int32_t* esp)
     }
     default:
     {
-      return -1;
+      struct file* fp = get_file(thread_current(), fd);
+      if(fp == NULL) return -1;
+      return file_read(fp, buffer, length);
     }
   }
 }
@@ -91,7 +102,6 @@ int write(int32_t* esp)
   char *buffer    = (char*) *(esp+2);
   int length      = *(esp+3);
 
-  //DBG("# WRITE: DF: %d BUFFER: %s LENGTH %d", fd, buffer, length);
   switch(fd)
   {
     case (STDOUT_FILENO):
@@ -101,7 +111,10 @@ int write(int32_t* esp)
     }
     default:
     {
-      return -1;
+      // För filer
+      struct file* fp = get_file(thread_current(), fd);
+      if(fp == NULL) return -1;
+      return file_write(fp, buffer, length);
     }
   }
 }
@@ -111,6 +124,8 @@ int open(int32_t* esp)
   char*  file_name = (char*) *(esp+1);
   struct file* fp  = filesys_open(file_name);
   int    fd        = -1;
+
+
 
   if(fp != NULL) {
     struct thread* current = thread_current();
@@ -124,8 +139,23 @@ bool create(int32_t* esp)
   char* file_name       = (char*) *(esp+1);
   unsigned initial_size = *(esp+2);
 
-  DBG("# Rad %d i filen %s file_name: %s initial_size: %d", __LINE__, __FILE__, file_name, initial_size);
   return filesys_create(file_name, initial_size);
+}
+
+void close(int32_t* esp)
+{
+  struct thread* t = thread_current();
+  int fd           = *(esp+1);
+  struct file* f   = map_remove(&t->open_file_table, fd);
+
+  file_close(f);
+}
+
+bool remove(int32_t* esp)
+{
+  char* file_name = (char*) *(esp+1);
+
+  return filesys_remove(file_name);
 }
 
 static void
@@ -164,14 +194,24 @@ syscall_handler (struct intr_frame *f)
     }
     case (SYS_CREATE):
     {
-      DBG("# Rad %d i filen %s SYS_CREATE interupt", __LINE__, __FILE__);
       f->eax = create(esp);
+      break;
+    }
+    case (SYS_CLOSE):
+    {
+      close(esp);
+      break;
+    }
+    case (SYS_REMOVE):
+    {
+      f->eax = remove(esp);
       break;
     }
     default:
     {
       printf ("Executed an unknown system call!\n");
-      
+
+      printf ("ESP: %d\n", *esp);
       printf ("Stack top + 0: %d\n", esp[0]);
       printf ("Stack top + 1: %d\n", esp[1]);
       

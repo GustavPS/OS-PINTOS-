@@ -49,7 +49,7 @@ value_t map_find(struct map* m, key_t k) {
   }
 
   if(current == NULL) {
-    PANIC("# FLIST.c Current is null in map_find");
+    return NULL;
   } else {
     return current->value;
   }
@@ -58,19 +58,32 @@ value_t map_find(struct map* m, key_t k) {
 value_t map_remove(struct map* m, key_t k) {
   struct node* current = m->first;
   struct node* prevNode = m->first;
+  int count = 0;
+  if(current == NULL) // If list is empty, return NULL.
+  {
+    return NULL;
+  }
 
   while(current->key != k && current->next != NULL) {
     prevNode = current;
     current = current->next;
+    count++;
   }
 
   if(k == current->key) {
     value_t value = current->value;
-    prevNode->next = current->next;
+    if(count == 0) // Special case, if we removed the only item, point maps first to NULL.
+    {
+      m->first = NULL;
+    }
+    else
+    {
+      prevNode->next = current->next;
+    }
     free(current);
     return value;
   } else {
-    PANIC("# FLIST.c didnt find key in map_remove");
+    return NULL;
   }
 }
 
