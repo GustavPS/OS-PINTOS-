@@ -1,5 +1,3 @@
-#include <stddef.h>
-
 #include "flist.h"
 
 void node_init(struct node* n, value_t v, key_t k) {
@@ -10,9 +8,9 @@ void node_init(struct node* n, value_t v, key_t k) {
 
 
 void map_init(struct map* m) {
-  struct node* n = malloc(sizeof(struct node));
-  node_init(n, 0, 0);
-  m->first = n;
+  // struct node* n = (struct node*) malloc(sizeof(struct node));
+  //node_init(n, 0, 0);
+  m->first = NULL;
 }
 
 void map_destroy(struct map* m) {
@@ -21,7 +19,7 @@ void map_destroy(struct map* m) {
 
 key_t map_insert(struct map* m, value_t v) {
   // Loopa igenom tills första NULL värde hittas, ersätt det med det nya värdet
-  int key = 0;
+  int key = 2;
   struct node* current = m->first;
   struct node* prevNode;
   while(current != NULL) {
@@ -30,10 +28,10 @@ key_t map_insert(struct map* m, value_t v) {
     key++;
   }
 
-  struct node* newValue = malloc(sizeof(struct node));
+  struct node* newValue = (struct node*) malloc(sizeof(struct node));
   node_init(newValue, v, key);
 
-  if(key == 0) {
+  if(key == 2) {
     m->first = newValue;
   } else {
     prevNode->next = newValue;
@@ -51,7 +49,7 @@ value_t map_find(struct map* m, key_t k) {
   }
 
   if(current == NULL) {
-    PANIC();
+    PANIC("# FLIST.c Current is null in map_find");
   } else {
     return current->value;
   }
@@ -59,7 +57,7 @@ value_t map_find(struct map* m, key_t k) {
 
 value_t map_remove(struct map* m, key_t k) {
   struct node* current = m->first;
-  struct node* prevNode;
+  struct node* prevNode = m->first;
 
   while(current->key != k && current->next != NULL) {
     prevNode = current;
@@ -72,7 +70,7 @@ value_t map_remove(struct map* m, key_t k) {
     free(current);
     return value;
   } else {
-    PANIC();
+    PANIC("# FLIST.c didnt find key in map_remove");
   }
 }
 

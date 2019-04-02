@@ -94,6 +94,8 @@ struct thread
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
+    struct map open_file_table;         /* Open tile table for this process */
+
     /* YES! You may want to add stuff. But make note of point 2 above. */
 
 #ifdef USERPROG

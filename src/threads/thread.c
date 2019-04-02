@@ -114,6 +114,8 @@ init_thread (struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->magic = THREAD_MAGIC;
 
+  map_init(&t->open_file_table);
+
   /* YES! You may want add stuff here. */
 }
 

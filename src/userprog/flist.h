@@ -65,10 +65,8 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
+#include "threads/malloc.h"
 #include <stdbool.h>
-#include
-#define PANIC() exit(1)
 
 typedef struct file* value_t;
 typedef int   key_t;

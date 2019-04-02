@@ -42,7 +42,8 @@ int main(int argc, char* argv[])
 {
   int id = JUNK;
   int i, j;
-  
+
+  /*
   msg ( "* ------------------ write screen test ------------------ *" );
   {
     char* msg = "Now displaying the arguments to main\n";
@@ -94,13 +95,13 @@ int main(int argc, char* argv[])
   }
   end ( "* -------------------- press enter ---------------------- *" );
 
-  
+   */
   msg ( "* ------------------ create file test ------------------- *" );
   {
     int success = JUNK;
-    
+
     printf ("Will try to create 'test.txt'\n");
-    success = create("test.txt", SIZE);    
+    success = create("test.txt", SIZE);
     verify ( success != JUNK && success );
   }
   end ( "* -------------------- press enter ---------------------- *" );

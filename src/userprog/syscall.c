@@ -50,9 +50,9 @@ void halt()
 
 void exit(int32_t* esp)
 {
-  DBG("# SYS_EXIT med koden %d på tråden %s med ID: %d", exit_code, current->name, current->tid);
   int exit_code = *(esp+1);
   struct thread* current = thread_current();
+  DBG("# SYS_EXIT med koden %d på tråden %s med ID: %d", exit_code, current->name, current->tid);
   thread_exit();
 }
 
@@ -106,6 +106,28 @@ int write(int32_t* esp)
   }
 }
 
+int open(int32_t* esp)
+{
+  char*  file_name = (char*) *(esp+1);
+  struct file* fp  = filesys_open(file_name);
+  int    fd        = -1;
+
+  if(fp != NULL) {
+    struct thread* current = thread_current();
+    fd = map_insert(&current->open_file_table, fp);
+  }
+  return fd;
+}
+
+bool create(int32_t* esp)
+{
+  char* file_name       = (char*) *(esp+1);
+  unsigned initial_size = *(esp+2);
+
+  DBG("# Rad %d i filen %s file_name: %s initial_size: %d", __LINE__, __FILE__, file_name, initial_size);
+  return filesys_create(file_name, initial_size);
+}
+
 static void
 syscall_handler (struct intr_frame *f) 
 {
@@ -133,6 +155,17 @@ syscall_handler (struct intr_frame *f)
     case (SYS_WRITE):
     {
       f->eax = write(esp);
+      break;
+    }
+    case (SYS_OPEN):
+    {
+      f->eax = open(esp);
+      break;
+    }
+    case (SYS_CREATE):
+    {
+      DBG("# Rad %d i filen %s SYS_CREATE interupt", __LINE__, __FILE__);
+      f->eax = create(esp);
       break;
     }
     default:

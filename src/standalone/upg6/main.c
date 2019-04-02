@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "map.h"
+#include "../../userprog/flist.h"
 
 /* Recommended compile commmand:
  * 
@@ -82,6 +82,7 @@ int main()
     id = map_insert(&container, obj);
   }
 
+
   /* remember to test with invalid keys (like 4711, or -1) */
   for ( i = 0; i < LOOPS; ++i)
   {
@@ -126,6 +127,7 @@ int main()
 
   /*! free all remaining memory and remove from map */
   map_remove_if(&container, do_free, 0);
-  
+  map_destroy(&container);
+
   return 0;
 }
