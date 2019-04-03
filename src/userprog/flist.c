@@ -1,4 +1,5 @@
 #include "flist.h"
+#include "filesys/filesys.h"
 
 void node_init(struct node* n, value_t v, key_t k) {
   n->value = v;
@@ -18,6 +19,7 @@ void map_destroy(struct map* m) {
   {
     current = next;
     next = current->next;
+    filesys_close(current->value);
     free(current);
   }
 }
