@@ -14,6 +14,14 @@ void map_init(struct map* m) {
 }
 
 void map_destroy(struct map* m) {
+  struct node* current = m->first;
+  struct node* next = m->first;
+  while(next != NULL)
+  {
+    current = next;
+    next = current->next;
+    free(current);
+  }
   free(m->first);
 }
 

@@ -237,7 +237,6 @@ int main(int argc, char* argv[])
     
   end ( "* -------------------- press enter ---------------------- *" );
 
-  
   msg ( "* ---------------- seek/tell file test ------------------ *" );
   {
     char buffer[8];

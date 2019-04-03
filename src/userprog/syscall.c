@@ -48,6 +48,10 @@ struct file* get_file(struct thread* t, int fd)
   return map_find(&t->open_file_table, fd);
 }
 
+void close_all_files(struct thread* t)
+{
+  map_destroy(&t->open_file_table);
+}
 
 
 // FUNCTIONS FOR SYSCALLS
@@ -62,6 +66,7 @@ void exit(int32_t* esp)
   int exit_code = *(esp+1);
   struct thread* current = thread_current();
   DBG("# SYS_EXIT med koden %d på tråden %s med ID: %d", exit_code, current->name, current->tid);
+  close_all_files(current);
   thread_exit();
 }
 

@@ -15,5 +15,6 @@ void close(int32_t*);
 bool remove(int32_t*);
 
 struct file* get_file(struct thread*, int);
+void close_all_files(struct thread*);
 
 #endif /* userprog/syscall.h */
