@@ -8,8 +8,6 @@ void node_init(struct node* n, value_t v, key_t k) {
 
 
 void map_init(struct map* m) {
-  // struct node* n = (struct node*) malloc(sizeof(struct node));
-  //node_init(n, 0, 0);
   m->first = NULL;
 }
 
@@ -22,8 +20,8 @@ void map_destroy(struct map* m) {
     next = current->next;
     free(current);
   }
-  free(m->first);
 }
+
 
 key_t map_insert(struct map* m, value_t v) {
   // Loopa igenom tills första NULL värde hittas, ersätt det med det nya värdet

@@ -163,6 +163,51 @@ bool remove(int32_t* esp)
   return filesys_remove(file_name);
 }
 
+void seek(int32_t* esp)
+{
+  int fd             = *(esp+1);
+  unsigned  position = *(esp+2);
+  struct thread* t   = thread_current();
+  struct file* fp    = get_file(t, fd);
+
+  if(fp != NULL)
+  {
+    file_seek(fp, position);
+  }
+}
+
+unsigned tell(int32_t* esp)
+{
+  int fd           = *(esp+1);
+  struct thread* t = thread_current();
+  struct file* fp  = get_file(t, fd);
+
+  if(fp != NULL)
+  {
+    return file_tell(fp);
+  }
+  else
+  {
+    return -1;
+  }
+}
+
+int file_size(int32_t* esp)
+{
+  int fd           = *(esp+1);
+  struct thread* t = thread_current();
+  struct file* fp  = get_file(t, fd);
+
+  if(fp != NULL)
+  {
+    return file_length(fp);
+  }
+  else
+  {
+    return -1;
+  }
+}
+
 static void
 syscall_handler (struct intr_frame *f) 
 {
@@ -210,6 +255,21 @@ syscall_handler (struct intr_frame *f)
     case (SYS_REMOVE):
     {
       f->eax = remove(esp);
+      break;
+    }
+    case (SYS_SEEK):
+    {
+      seek(esp);
+      break;
+    }
+    case (SYS_TELL):
+    {
+      f->eax = tell(esp);
+      break;
+    }
+    case (SYS_FILESIZE):
+    {
+      f->eax = file_size(esp);
       break;
     }
     default:
