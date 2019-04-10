@@ -316,8 +316,7 @@ thread_exit (void)
   process_cleanup ();
 #endif
 
-  map_destroy(&thread_current()->open_file_table);
-  
+
 
   /* Just set our status to dying and schedule another process.
      We will be destroyed during the call to schedule_tail(). */

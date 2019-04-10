@@ -123,8 +123,6 @@ int open(int32_t* esp)
   struct file* fp  = filesys_open(file_name);
   int    fd        = -1;
 
-
-
   if(fp != NULL) {
     struct thread* current = thread_current();
     fd = map_insert(&current->open_file_table, fp);
@@ -146,7 +144,7 @@ void close(int32_t* esp)
   int fd           = *(esp+1);
   struct file* f   = map_remove(&t->open_file_table, fd);
 
-  file_sys_close(f);
+  filesys_close(f);
 }
 
 bool remove(int32_t* esp)

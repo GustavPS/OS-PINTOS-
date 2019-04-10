@@ -256,6 +256,8 @@ process_cleanup (void)
     }  
   debug("%s#%d: process_cleanup() DONE with status %d\n",
         cur->name, cur->tid, status);
+
+  map_destroy(&thread_current()->open_file_table);
 }
 
 /* Sets up the CPU for running user code in the current

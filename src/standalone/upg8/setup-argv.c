@@ -49,7 +49,6 @@
   gcc -m32 -Wall -Wextra -std=gnu99 -g setup-argv.c
   
 */
-#error Read comments above, then remove this line.
 
 #define true 1
 #define false 0
@@ -181,10 +180,11 @@ void* setup_main_stack(const char* command_line, void* stack_top)
    * pointed out by that address a "struct main_args" is found.
    * That is: "esp" is a pointer to "struct main_args" */
   struct main_args* esp;
-  int argc;
+  int argc = 0;
   int total_size;
   int line_size;
   int cmdl_size;
+
 
   /* "cmd_line_on_stack" and "ptr_save" are variables that each store
    * one address, and at that address (the first) char (of a possible
@@ -194,38 +194,57 @@ void* setup_main_stack(const char* command_line, void* stack_top)
   int i = 0;
   
   /* calculate the bytes needed to store the command_line */
-  line_size = ??? ;
+  line_size = strlen(command_line) * sizeof(char) + sizeof(char);
   STACK_DEBUG("# line_size = %d\n", line_size);
 
   /* round up to make it even divisible by 4 */
-  line_size = ??? ;
+  //line_size = ??? ;
+  while(line_size % 4 != 0)
+  {
+    line_size++;
+  }
   STACK_DEBUG("# line_size (aligned) = %d\n", line_size);
 
   /* calculate how many words the command_line contain */
-  argc = ??? ;
+  char command_line_copy[line_size];
+  strncpy(command_line_copy, command_line, strlen(command_line));
+  for (char* token = strtok_r (command_line_copy, " ", &ptr_save); token != NULL;
+       token = strtok_r (NULL, " ", &ptr_save))
+    argc++;
   STACK_DEBUG("# argc = %d\n", argc);
 
   /* calculate the size needed on our simulated stack */
-  total_size = ??? ;
+  total_size = line_size + (argc+4) * 4;
   STACK_DEBUG("# total_size = %d\n", total_size);
   
 
   /* calculate where the final stack top will be located */
-  esp = ??? ;
-  
+  esp = (struct main_args*) ((char*) stack_top -  total_size);
+
   /* setup return address and argument count */
-  esp->ret = ??? ;
-  esp->argc = ??? ;
+  esp->ret = NULL;
+  esp->argc = argc;
   /* calculate where in the memory the argv array starts */
-  esp->argv = ??? ;
+  esp->argv = (char**) ((char*) esp + 12);
   
   /* calculate where in the memory the words is stored */
-  cmd_line_on_stack = ??? ;
+  cmd_line_on_stack = stack_top - line_size;
 
   /* copy the command_line to where it should be in the stack */
+  strncpy(cmd_line_on_stack, command_line, line_size);
+  STACK_DEBUG("cmd_line_on_stack: %s\n", cmd_line_on_stack);
 
   /* build argv array and insert null-characters after each word */
-  
+  int count = 0;
+  ptr_save = NULL;
+  for (char* token = strtok_r (cmd_line_on_stack, " ", &ptr_save); token != NULL;
+       token = strtok_r (NULL, " ", &ptr_save))
+  {
+    esp->argv[count] = token;
+    count++;
+    //strncpy(*esp->argv+(int)count, token, strlen(token));
+  }
+  esp->argv[esp->argc] = NULL;
   return esp; /* the new stack top */
 }
 
