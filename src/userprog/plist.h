@@ -1,6 +1,9 @@
 #ifndef _PLIST_H_
 #define _PLIST_H_
 
+#include "process.h" // Inkludera bara bool och tid_t
+#include <string.h>
+
 
 /* Place functions to handle a running process here (process list).
    
@@ -29,5 +32,32 @@
      
  */
 
+struct pnode
+{
+  // FREE??
+  char* name;
+  tid_t proc_id;
+  tid_t parent_id;
+  int exit_status;
+  bool alive;
+  bool parent_alive;
+  struct pnode* next;
+};
+
+void pnode_init(struct pnode*,tid_t, tid_t, const char*);
+void pnode_copy(struct pnode*, struct pnode*); // Copy from the right to the left
+
+
+struct plist
+{
+  struct pnode* first;
+};
+
+void         plist_init(struct plist*);
+void         plist_destroy(struct plist*);
+int          plist_insert(struct plist*, tid_t, tid_t, char*); // proc_id, parent_id, name
+struct pnode plist_find(struct plist*, int); // Find by proc_id
+void         plist_remove(struct plist*, int); // Remove by proc_id
+void         plist_print(struct plist*);
 
 #endif

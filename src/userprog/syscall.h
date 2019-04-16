@@ -16,6 +16,8 @@ bool remove(int32_t*);
 void seek(int32_t*);
 unsigned tell(int32_t*);
 int file_size(int32_t*);
+void exec(int32_t*);
+void sleep(int32_t*);
 
 struct file* get_file(struct thread*, int);
 void close_all_files(struct thread*);

@@ -34,6 +34,9 @@ void seek (int fd, unsigned position);
 unsigned tell (int fd);
 void close (int fd);
 
+void plist(void);
+void sleep(int millis);
+
 /* Memory mapping system calls. */
 mapid_t mmap (int fd, void *addr);
 void munmap (mapid_t);

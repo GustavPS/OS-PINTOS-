@@ -13,6 +13,7 @@
 #include "userprog/pagedir.h"
 #include "userprog/process.h"
 #include "devices/input.h"
+#include "devices/timer.h"
 #define DBG(format, ...) printf(format "\n", ##__VA_ARGS__)
 
 static void syscall_handler (struct intr_frame *);
@@ -199,6 +200,18 @@ int file_size(int32_t* esp)
   }
 }
 
+void sleep(int32_t* esp)
+{
+  int ms = *(esp+1);
+  timer_sleep(ms);
+}
+
+void exec(int32_t* esp)
+{
+  const char* command_line = *(esp+1);
+  process_execute(command_line);
+}
+
 static void
 syscall_handler (struct intr_frame *f) 
 {
@@ -261,6 +274,21 @@ syscall_handler (struct intr_frame *f)
     case (SYS_FILESIZE):
     {
       f->eax = file_size(esp);
+      break;
+    }
+    case (SYS_PLIST):
+    {
+      process_print_list();
+      break;
+    }
+    case (SYS_SLEEP):
+    {
+      sleep(esp);
+      break;
+    }
+    case (SYS_EXEC):
+    {
+      exec(esp);
       break;
     }
     default:

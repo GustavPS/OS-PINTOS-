@@ -23,8 +23,13 @@
 #include "userprog/flist.h"
 #include "userprog/plist.h"
 
+#include "devices/timer.h"
+
 /* HACK defines code you must remove and implement in a proper way */
 #define STACK_DEBUG(...) printf(__VA_ARGS__)
+
+static struct plist process_list;
+
 /*
 * Return true if 'c' is fount in the c-string 'd'
 * NOTE: 'd' must be a '\0'-terminated c-string
@@ -134,6 +139,7 @@ void* setup_main_stack(const char* command_line, void* stack_top)
  * the process subsystem. */
 void process_init(void)
 {
+  plist_init(&process_list);
 }
 
 /* This function is currently never called. As thread_exit does not
@@ -149,12 +155,16 @@ void process_exit(int status UNUSED)
  * relevant debug information in a clean, readable format. */
 void process_print_list()
 {
+  plist_print(&process_list);
 }
 
 
 struct parameters_to_start_process
 {
   char* command_line;
+  struct semaphore sema;
+  int result;
+  tid_t pid;
 };
 
 static void
@@ -184,21 +194,26 @@ process_execute (const char *command_line)
 
   /* COPY command line out of parent process memory */
   arguments.command_line = malloc(command_line_size);
+  arguments.pid = thread_current()->tid;
   strlcpy(arguments.command_line, command_line, command_line_size);
 
 
   strlcpy_first_word (debug_name, command_line, 64);
-  
+
+  sema_init(&arguments.sema, 0);
+
   /* SCHEDULES function `start_process' to run (LATER) */
   thread_id = thread_create (debug_name, PRI_DEFAULT,
                              (thread_func*)start_process, &arguments);
+  if(thread_id != -1)
+  {
+    sema_down(&arguments.sema);
+    if(arguments.result != -1)
+    {
+      process_id = thread_id;
+    }
+  }
 
-  process_id = thread_id;
-
-  /* AVOID bad stuff by turning off. YOU will fix this! */
-  power_off();
-  
-  
   /* WHICH thread may still be using this right now? */
   free(arguments.command_line);
 
@@ -253,6 +268,10 @@ start_process (struct parameters_to_start_process* parameters)
        C-function expects the stack to contain, in order, the return
        address, the first argument, the second argument etc. */
     if_.esp = setup_main_stack(parameters->command_line, if_.esp);
+    parameters->result = 0; // Allt gick bra
+
+
+    plist_insert(&process_list, thread_current()->tid, parameters->pid, thread_current()->name);
 
     /* The stack and stack pointer should be setup correct just before
        the process start, so this is the place to dump stack content
@@ -261,13 +280,18 @@ start_process (struct parameters_to_start_process* parameters)
     //dump_stack ( PHYS_BASE + 15, PHYS_BASE - if_.esp + 16 );
 
   }
+  else
+  {
+    parameters->result = -1;
+  }
 
   debug("%s#%d: start_process(\"%s\") DONE\n",
         thread_current()->name,
         thread_current()->tid,
         parameters->command_line);
-  
-  
+
+  sema_up(&parameters->sema);
+
   /* If load fail, quit. Load may fail for several reasons.
      Some simple examples:
      - File doeas not exist
@@ -361,6 +385,7 @@ process_cleanup (void)
         cur->name, cur->tid, status);
 
   map_destroy(&thread_current()->open_file_table);
+  plist_remove(&process_list, thread_current()->tid);
 }
 
 /* Sets up the CPU for running user code in the current

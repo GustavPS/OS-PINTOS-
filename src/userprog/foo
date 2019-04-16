@@ -1,0 +1,338 @@
+Copying ../examples/longrun_nowait into /tmp/Ry9fKcrTPA.dsk...
+Copying ../examples/generic_parent into /tmp/Ry9fKcrTPA.dsk...
+Copying ../examples/busy into /tmp/Ry9fKcrTPA.dsk...
+Writing command line to /tmp/3b9zuvSBkT.dsk...
+qemu-system-i386 -drive file=/tmp/3b9zuvSBkT.dsk,index=0,format=raw -drive file=/tmp/FF3vYBUfQp.dsk,index=1,format=raw -drive file=/tmp/Ry9fKcrTPA.dsk,index=2,format=raw -m 4 -net none -monitor null -nographic -device isa-debug-exit,iobase=0xf4,iosize=0x04
+Kernel command line: -f -q put nowait put generic_parent put dummy run 'nowait 1 5'
+Pintos booting with 3,968 kB RAM...
+356 pages available in kernel pool.
+355 pages available in user pool.
+# main#1: thread_create("idle", ...) RETURNS 2
+Calibrating timer... 539,648,000 loops/s.
+hd0:0: detected 169 sector (84 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+hd0:1: detected 4,032 sector (1 MB) disk, model "QEMU HARDDISK", serial "QM00002"
+hd1:0: detected 244 sector (122 kB) disk, model "QEMU HARDDISK", serial "QM00003"
+Formatting file system...done.
+Boot complete.
+Putting 'nowait' into the file system...
+Putting 'generic_parent' into the file system...
+Putting 'dummy' into the file system...
+Executing 'nowait 1 5':
+# main#1: process_execute("nowait 1 5") ENTERED
+# main#1: thread_create("nowait", ...) RETURNS 3
+# nowait#3: start_process("nowait 1 5") ENTERED
+# nowait#3: start_process(...): load returned 1
+# line_size = 11
+# line_size (aligned) = 12
+# argc = 3
+# total_size = 40
+cmd_line_on_stack: nowait 1 5
+# nowait#3: start_process("nowait 1 5") DONE
+Will try to start a total of 5 processes in groups of 1
+# nowait#3: process_execute("generic_parent dummy 0 1") ENTERED
+# nowait#3: thread_create("generic_parent", ...) RETURNS 4
+# main#1: process_execute("nowait 1 5") RETURNS 3
+# main#1: process_wait(3) ENTERED
+# main#1: process_wait(3) RETURNS -1
+Execution of 'nowait 1 5' complete.
+# Preparing to power off...
+ERROR: Main thread about to poweroff with 3 other threads still running!
+ERROR: Check your implementation of process_execute() and process_wait().
+# generic_parent#4: start_process("generic_parent dummy 0 1") ENTERED
+# generic_parent#4: start_process(...): load returned 1
+# line_size = 25
+# line_size (aligned) = 28
+# argc = 4
+# total_size = 60
+cmd_line_on_stack: generic_parent dummy 0 1
+# generic_parent#4: start_process("generic_parent dummy 0 1") DONE
+# nowait#3: process_execute("generic_parent dummy 0 1") RETURNS 4
+-----------------------------------------
+Thread: nowait id: 3
+ - proc_id: 3
+ - parent_id: 1
+ - exit_status: -1
+ - alive: 1
+ - parent_alive: 1
+-----------------------------------------
+
+Thread: generic_parent id: 4
+ - proc_id: 4
+ - parent_id: 3
+ - exit_status: -1
+ - alive: 1
+ - parent_alive: 1
+-----------------------------------------
+
+# generic_parent#4: process_execute("dummy 0") ENTERED
+# generic_parent#4: thread_create("dummy", ...) RETURNS 5
+Now entering busy-loop to let some processes finish
+# nowait#3: process_execute("generic_parent dummy 1 1") ENTERED
+# nowait#3: thread_create("generic_parent", ...) RETURNS 6
+# dummy#5: start_process("dummy 0") ENTERED
+# generic_parent#6: start_process("generic_parent dummy 1 1") ENTERED
+load: generic_parent: open failed
+# generic_parent#6: start_process(...): load returned 0
+# generic_parent#6: start_process("generic_parent dummy 1 1") DONE
+# generic_parent#6: process_cleanup() ENTERED
+generic_parent: exit(-1)
+# generic_parent#6: process_cleanup() DONE with status -1
+SNÄLLA# nowait#3: process_execute("generic_parent dummy 1 1") RETURNS -1
+-----------------------------------------
+Thread: nowait id: 3
+ - proc_id: 3
+ - parent_id: 1
+ - exit_status: -1
+ - alive: 1
+ - parent_alive: 1
+-----------------------------------------
+
+Thread: generic_parent id: 4
+ - proc_id: 4
+ - parent_id: 3
+ - exit_status: -1
+ - alive: 1
+ - parent_alive: 1
+-----------------------------------------
+
+Now entering busy-loop to let some processes finish
+ERROR: Main thread about to poweroff with 4 other threads still running!
+ERROR: Check your implementation of process_execute() and process_wait().
+# nowait#3: process_execute("generic_parent dummy 2 1") ENTERED
+# nowait#3: thread_create("generic_parent", ...) RETURNS 7
+# generic_parent#7: start_process("generic_parent dummy 2 1") ENTERED
+# dummy#5: start_process(...): load returned 1
+# line_size = 8
+# line_size (aligned) = 8
+# argc = 2
+# total_size = 32
+cmd_line_on_stack: dummy 0
+# dummy#5: start_process("dummy 0") DONE
+# generic_parent#4: process_execute("dummy 0") RETURNS 5
+# SYS_EXIT med koden 1 på tråden generic_parent med ID: 4
+# generic_parent#4: process_cleanup() ENTERED
+generic_parent: exit(-1)
+# generic_parent#4: process_cleanup() DONE with status -1
+SNÄLLA# SYS_EXIT med koden 0 på tråden dummy med ID: 5
+ERROR: Main thread about to poweroff with 4 other threads still running!
+ERROR: Check your implementation of process_execute() and process_wait().
+# dummy#5: process_cleanup() ENTERED
+dummy: exit(-1)
+# dummy#5: process_cleanup() DONE with status -1
+SNÄLLAERROR: Main thread about to poweroff with 3 other threads still running!
+ERROR: Check your implementation of process_execute() and process_wait().
+# generic_parent#7: start_process(...): load returned 1
+# line_size = 25
+# line_size (aligned) = 28
+# argc = 4
+# total_size = 60
+cmd_line_on_stack: generic_parent dummy 2 1
+# generic_parent#7: start_process("generic_parent dummy 2 1") DONE
+# generic_parent#7: process_execute("dummy 2") ENTERED
+# generic_parent#7: thread_create("dummy", ...) RETURNS 8
+# nowait#3: process_execute("generic_parent dummy 2 1") RETURNS 7
+-----------------------------------------
+Thread: nowait id: 3
+ - proc_id: 3
+ - parent_id: 1
+ - exit_status: -1
+ - alive: 1
+ - parent_alive: 1
+-----------------------------------------
+
+Thread: generic_parent id: 4
+ - proc_id: 4
+ - parent_id: 3
+ - exit_status: -1
+ - alive: 0
+ - parent_alive: 1
+-----------------------------------------
+
+Thread: generic_parent id: 7
+ - proc_id: 7
+ - parent_id: 3
+ - exit_status: -1
+ - alive: 1
+ - parent_alive: 1
+-----------------------------------------
+
+Now entering busy-loop to let some processes finish
+# dummy#8: start_process("dummy 2") ENTERED
+# nowait#3: process_execute("generic_parent dummy 3 1") ENTERED
+# nowait#3: thread_create("generic_parent", ...) RETURNS 9
+# generic_parent#9: start_process("generic_parent dummy 3 1") ENTERED
+# dummy#8: start_process(...): load returned 1
+# line_size = 8
+# line_size (aligned) = 8
+# argc = 2
+# total_size = 32
+cmd_line_on_stack: dummy 2
+# dummy#8: start_process("dummy 2") DONE
+# SYS_EXIT med koden 2 på tråden dummy med ID: 8
+# dummy#8: process_cleanup() ENTERED
+dummy: exit(-1)
+# dummy#8: process_cleanup() DONE with status -1
+SNÄLLA# generic_parent#7: process_execute("dummy 2") RETURNS 8
+# SYS_EXIT med koden 3 på tråden generic_parent med ID: 7
+ERROR: Main thread about to poweroff with 4 other threads still running!
+ERROR: Check your implementation of process_execute() and process_wait().
+# generic_parent#7: process_cleanup() ENTERED
+generic_parent: exit(-1)
+# generic_parent#7: process_cleanup() DONE with status -1
+SNÄLLAERROR: Main thread about to poweroff with 3 other threads still running!
+ERROR: Check your implementation of process_execute() and process_wait().
+# generic_parent#9: start_process(...): load returned 1
+# line_size = 25
+# line_size (aligned) = 28
+# argc = 4
+# total_size = 60
+cmd_line_on_stack: generic_parent dummy 3 1
+# generic_parent#9: start_process("generic_parent dummy 3 1") DONE
+# nowait#3: process_execute("generic_parent dummy 3 1") RETURNS 9
+-----------------------------------------
+Thread: nowait id: 3
+ - proc_id: 3
+ - parent_id: 1
+ - exit_status: -1
+ - alive: 1
+ - parent_alive: 1
+-----------------------------------------
+
+Thread: generic_parent id: 4
+ - proc_id: 4
+ - parent_id: 3
+ - exit_status: -1
+ - alive: 0
+ - parent_alive: 1
+-----------------------------------------
+
+Thread: generic_parent id: 7
+ - proc_id: 7
+ - parent_id: 3
+ - exit_status: -1
+ - alive: 0
+ - parent_alive: 1
+-----------------------------------------
+
+Thread: generic_parent id: 9
+ - proc_id: 9
+ - parent_id: 3
+ - exit_status: -1
+ - alive: 1
+ - parent_alive: 1
+-----------------------------------------
+
+Now entering busy-loop to let some processes finish
+# generic_parent#9: process_execute("dummy 3") ENTERED
+# generic_parent#9: thread_create("dummy", ...) RETURNS 10
+# dummy#10: start_process("dummy 3") ENTERED
+# nowait#3: process_execute("generic_parent dummy 4 1") ENTERED
+# nowait#3: thread_create("generic_parent", ...) RETURNS 11
+# generic_parent#11: start_process("generic_parent dummy 4 1") ENTERED
+# dummy#10: start_process(...): load returned 1
+# line_size = 8
+# line_size (aligned) = 8
+# argc = 2
+# total_size = 32
+cmd_line_on_stack: dummy 3
+# dummy#10: start_process("dummy 3") DONE
+# generic_parent#9: process_execute("dummy 3") RETURNS 10
+# SYS_EXIT med koden 4 på tråden generic_parent med ID: 9
+# generic_parent#9: process_cleanup() ENTERED
+generic_parent: exit(-1)
+# generic_parent#9: process_cleanup() DONE with status -1
+SNÄLLA# SYS_EXIT med koden 3 på tråden dummy med ID: 10
+ERROR: Main thread about to poweroff with 4 other threads still running!
+ERROR: Check your implementation of process_execute() and process_wait().
+# dummy#10: process_cleanup() ENTERED
+dummy: exit(-1)
+# dummy#10: process_cleanup() DONE with status -1
+SNÄLLAERROR: Main thread about to poweroff with 3 other threads still running!
+ERROR: Check your implementation of process_execute() and process_wait().
+# generic_parent#11: start_process(...): load returned 1
+# line_size = 25
+# line_size (aligned) = 28
+# argc = 4
+# total_size = 60
+cmd_line_on_stack: generic_parent dummy 4 1
+# generic_parent#11: start_process("generic_parent dummy 4 1") DONE
+# generic_parent#11: process_execute("dummy 4") ENTERED
+# generic_parent#11: thread_create("dummy", ...) RETURNS 12
+# nowait#3: process_execute("generic_parent dummy 4 1") RETURNS 11
+-----------------------------------------
+Thread: nowait id: 3
+ - proc_id: 3
+ - parent_id: 1
+ - exit_status: -1
+ - alive: 1
+ - parent_alive: 1
+-----------------------------------------
+
+Thread: generic_parent id: 4
+ - proc_id: 4
+ - parent_id: 3
+ - exit_status: -1
+ - alive: 0
+ - parent_alive: 1
+-----------------------------------------
+
+Thread: generic_parent id: 7
+ - proc_id: 7
+ - parent_id: 3
+ - exit_status: -1
+ - alive: 0
+ - parent_alive: 1
+-----------------------------------------
+
+Thread: generic_parent id: 9
+ - proc_id: 9
+ - parent_id: 3
+ - exit_status: -1
+ - alive: 0
+ - parent_alive: 1
+-----------------------------------------
+
+Thread: generic_parent id: 11
+ - proc_id: 11
+ - parent_id: 3
+ - exit_status: -1
+ - alive: 1
+ - parent_alive: 1
+-----------------------------------------
+
+Now entering busy-loop to let some processes finish
+# dummy#12: start_process("dummy 4") ENTERED
+# SYS_EXIT med koden 0 på tråden nowait med ID: 3
+# nowait#3: process_cleanup() ENTERED
+nowait: exit(-1)
+# nowait#3: process_cleanup() DONE with status -1
+SNÄLLAERROR: Main thread about to poweroff with 3 other threads still running!
+ERROR: Check your implementation of process_execute() and process_wait().
+# dummy#12: start_process(...): load returned 1
+# line_size = 8
+# line_size (aligned) = 8
+# argc = 2
+# total_size = 32
+cmd_line_on_stack: dummy 4
+# dummy#12: start_process("dummy 4") DONE
+# generic_parent#11: process_execute("dummy 4") RETURNS 12
+# SYS_EXIT med koden 5 på tråden generic_parent med ID: 11
+# generic_parent#11: process_cleanup() ENTERED
+generic_parent: exit(-1)
+# generic_parent#11: process_cleanup() DONE with status -1
+SNÄLLA# SYS_EXIT med koden 4 på tråden dummy med ID: 12
+ERROR: Main thread about to poweroff with 2 other threads still running!
+ERROR: Check your implementation of process_execute() and process_wait().
+# dummy#12: process_cleanup() ENTERED
+dummy: exit(-1)
+# dummy#12: process_cleanup() DONE with status -1
+SNÄLLATimer: 1000 interrupts per second
+Timer: 809 ticks
+Thread: 37 idle ticks, 455 kernel ticks, 318 user ticks
+hd0:0: 0 reads, 0 writes
+hd0:1: 327 reads, 500 writes
+hd1:0: 244 reads, 0 writes
+Console: 11592 characters output
+Keyboard: 0 keys pressed
+Exception: 0 page faults
+Powering off...
