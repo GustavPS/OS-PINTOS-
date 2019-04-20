@@ -3,6 +3,7 @@
 
 #include "process.h" // Inkludera bara bool och tid_t
 #include <string.h>
+#include "threads/synch.h"
 
 
 /* Place functions to handle a running process here (process list).
@@ -34,13 +35,13 @@
 
 struct pnode
 {
-  // FREE??
   char* name;
   tid_t proc_id;
   tid_t parent_id;
   int exit_status;
   bool alive;
   bool parent_alive;
+  struct semaphore sema;
   struct pnode* next;
 };
 
@@ -56,8 +57,9 @@ struct plist
 void         plist_init(struct plist*);
 void         plist_destroy(struct plist*);
 int          plist_insert(struct plist*, tid_t, tid_t, char*); // proc_id, parent_id, name
-struct pnode plist_find(struct plist*, int); // Find by proc_id
-void         plist_remove(struct plist*, int); // Remove by proc_id
+struct pnode* plist_find(struct plist*, int); // Find by proc_id
+void         plist_remove(struct plist*, int, bool); // Remove by proc_id
 void         plist_print(struct plist*);
+void         plist_update_exit(struct plist*, tid_t, int);
 
 #endif

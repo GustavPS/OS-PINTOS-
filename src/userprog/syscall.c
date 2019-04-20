@@ -52,7 +52,7 @@ struct file* get_file(struct thread* t, int fd)
 // FUNCTIONS FOR SYSCALLS
 void halt()
 {
-  DBG("# Rad %d i filen %s SYS_HALT interupt", __LINE__, __FILE__);
+  DBG("# Rad %d i filen %s SYS_HALT interupt ", __LINE__, __FILE__);
   power_off();
 }
 
@@ -60,6 +60,8 @@ void exit(int32_t* esp)
 {
   int exit_code = *(esp+1);
   struct thread* current = thread_current();
+  set_exit_status(exit_code);
+
   DBG("# SYS_EXIT med koden %d på tråden %s med ID: %d", exit_code, current->name, current->tid);
   thread_exit();
 }
@@ -206,10 +208,16 @@ void sleep(int32_t* esp)
   timer_sleep(ms);
 }
 
-void exec(int32_t* esp)
+int exec(int32_t* esp)
 {
-  const char* command_line = *(esp+1);
-  process_execute(command_line);
+  const char* command_line = (char*) *(esp+1);
+  return process_execute(command_line);
+}
+
+int wait(int32_t* esp)
+{
+  int id = *(esp+1);
+  return process_wait(id);
 }
 
 static void
@@ -288,7 +296,12 @@ syscall_handler (struct intr_frame *f)
     }
     case (SYS_EXEC):
     {
-      exec(esp);
+      f->eax = exec(esp);
+      break;
+    }
+    case (SYS_WAIT):
+    {
+      f->eax = wait(esp);
       break;
     }
     default:

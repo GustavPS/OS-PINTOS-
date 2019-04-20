@@ -26,9 +26,13 @@
 #include "devices/timer.h"
 
 /* HACK defines code you must remove and implement in a proper way */
-#define STACK_DEBUG(...) printf(__VA_ARGS__)
 
 static struct plist process_list;
+void set_exit_status(int exit_status)
+{
+  printf("# ------------ inne i set_exit_status med status: %d\n", exit_status);
+  plist_update_exit(&process_list, thread_current()->tid, exit_status);
+}
 
 /*
 * Return true if 'c' is fount in the c-string 'd'
@@ -83,7 +87,7 @@ void* setup_main_stack(const char* command_line, void* stack_top)
 
   /* calculate the bytes needed to store the command_line */
   line_size = strlen(command_line) * sizeof(char) + sizeof(char);
-  STACK_DEBUG("# line_size = %d\n", line_size);
+  debug("line_size = %d\n", line_size);
 
   /* round up to make it even divisible by 4 */
   //line_size = ??? ;
@@ -91,18 +95,18 @@ void* setup_main_stack(const char* command_line, void* stack_top)
   {
     line_size++;
   }
-  STACK_DEBUG("# line_size (aligned) = %d\n", line_size);
+  debug("line_size (aligned) = %d\n", line_size);
 
   /* calculate how many words the command_line contain */
   char command_line_copy[line_size];
   strlcpy(command_line_copy, command_line, strlen(command_line));
 
   argc = count_args(command_line, " ");
-  STACK_DEBUG("# argc = %d\n", argc);
+  debug("argc = %d\n", argc);
 
   /* calculate the size needed on our simulated stack */
   total_size = line_size + (argc+4) * 4;
-  STACK_DEBUG("# total_size = %d\n", total_size);
+  debug("total_size = %d\n", total_size);
 
 
   /* calculate where the final stack top will be located */
@@ -119,7 +123,7 @@ void* setup_main_stack(const char* command_line, void* stack_top)
 
   /* copy the command_line to where it should be in the stack */
   strlcpy(cmd_line_on_stack, command_line, line_size);
-  STACK_DEBUG("cmd_line_on_stack: %s\n", cmd_line_on_stack);
+  debug("cmd_line_on_stack: %s\n", cmd_line_on_stack);
 
   /* build argv array and insert null-characters after each word */
   int count = 0;
@@ -216,7 +220,6 @@ process_execute (const char *command_line)
 
   /* WHICH thread may still be using this right now? */
   free(arguments.command_line);
-
   debug("%s#%d: process_execute(\"%s\") RETURNS %d\n",
         thread_current()->name,
         thread_current()->tid,
@@ -329,7 +332,14 @@ process_wait (int child_id)
 
   debug("%s#%d: process_wait(%d) ENTERED\n",
         cur->name, cur->tid, child_id);
-  /* Yes! You need to do something good here ! */
+
+  struct pnode* node = plist_find(&process_list, child_id);
+  if(node != NULL && node->parent_id == thread_current()->tid)
+  {
+    sema_down(&node->sema);
+    status = node->exit_status;
+    plist_remove(&process_list, child_id, true); // "Force" removar itemet eftersom det inte behövs längre
+  }
   debug("%s#%d: process_wait(%d) RETURNS %d\n",
         cur->name, cur->tid, child_id, status);
   
@@ -364,6 +374,11 @@ process_cleanup (void)
    * that may sometimes poweroff as soon as process_wait() returns,
    * possibly before the printf is completed.)
    */
+
+  struct pnode* node = plist_find(&process_list, thread_current()->tid);
+  if(node != NULL) {
+    status = node->exit_status;
+  }
   printf("%s: exit(%d)\n", thread_name(), status);
   
   /* Destroy the current process's page directory and switch back
@@ -385,7 +400,7 @@ process_cleanup (void)
         cur->name, cur->tid, status);
 
   map_destroy(&thread_current()->open_file_table);
-  plist_remove(&process_list, thread_current()->tid);
+  plist_remove(&process_list, thread_current()->tid, false);
 }
 
 /* Sets up the CPU for running user code in the current

@@ -31,6 +31,9 @@ int process_wait (tid_t);
 void process_cleanup (void);
 void process_activate (void);
 
+void set_exit_status(int);
+int wait_for_child(tid_t);
+
 void* setup_main_stack(const char*, void*);
 int count_args(const char*, const char*);
 bool exists_in(char, const char*);

@@ -12,6 +12,7 @@ void pnode_init(struct pnode* pn, tid_t proc_id, tid_t parent_id, const char* na
   pn->alive = true;
   pn->parent_alive = true;
   pn->next = NULL;
+  sema_init(&pn->sema, 0);
 }
 
 void pnode_copy(struct pnode* to, struct pnode* from)
@@ -56,7 +57,7 @@ int plist_insert(struct plist* pl, tid_t proc_id, tid_t parent_id, char* name)
   return proc_id;
 }
 
-struct pnode plist_find(struct plist* pl, int proc_id)
+struct pnode* plist_find(struct plist* pl, int proc_id)
 {
   struct pnode* current = pl->first;
 
@@ -65,6 +66,8 @@ struct pnode plist_find(struct plist* pl, int proc_id)
     current = current->next;
   }
 
+  return current;
+  /*
   struct pnode returnNode;
   if (current == NULL)
   {
@@ -76,9 +79,10 @@ struct pnode plist_find(struct plist* pl, int proc_id)
     returnNode.next = NULL;
   }
   return returnNode;
+   */
 }
 
-void plist_remove(struct plist* pl, int proc_id)
+void plist_remove(struct plist* pl, int proc_id, bool force)
 {
   struct pnode* current = pl->first;
   struct pnode* prevNode = pl->first;
@@ -90,7 +94,7 @@ void plist_remove(struct plist* pl, int proc_id)
       should_remove = false;
 
       // 1. Gå igenom alla barn, sätt parent alive = false, om barnet har alive = false ta bort barnet
-      if (current->parent_id == proc_id) {
+      if (current != NULL && current->parent_id == proc_id) {
         current->parent_alive = false;
 
         if(!current->alive) { // Ta bort barnet om den inte lever
@@ -102,9 +106,10 @@ void plist_remove(struct plist* pl, int proc_id)
           should_remove = true;
         }
       // 2. Sätt egen alive = false, om parent alive == false, ta bort oss själva
-      } else if (current->proc_id == proc_id) {
+      } else if (current != NULL &&  current->proc_id == proc_id) {
         current->alive = false;
-        if (!current->parent_alive) {
+        sema_up(&current->sema);
+        if (force || !current->parent_alive) {
           if (count == 0) { // Special case, om vi tar bort första itemet
             pl->first = current->next;
           } else {
@@ -128,18 +133,34 @@ void plist_remove(struct plist* pl, int proc_id)
   }
 }
 
+void plist_update_exit(struct plist* pl, tid_t proc_id, int exit_status)
+{
+  struct pnode* current = pl->first;
+
+  while (current != NULL && current->proc_id != proc_id)
+  {
+    current = current->next;
+  }
+
+  if (current != NULL)
+  {
+    current->exit_status = exit_status;
+  }
+}
+
 void plist_print(struct plist* pl)
 {
   struct pnode* current = pl->first;
-  printf("-----------------------------------------\n");
+  printf("# plist_print:\n");
+  printf("# -----------------------------------------\n");
   while(current != NULL) {
-    printf("Thread: %s id: %d\n", current->name, current->proc_id);
-    printf(" - proc_id: %d\n", current->proc_id);
-    printf(" - parent_id: %d\n", current->parent_id);
-    printf(" - exit_status: %d\n", current->exit_status);
-    printf(" - alive: %d\n", current->alive);
-    printf(" - parent_alive: %d\n", current->parent_alive);
-    printf("-----------------------------------------\n\n");
+    printf("# Thread: %s id: %d\n", current->name, current->proc_id);
+    printf("#  - proc_id: %d\n", current->proc_id);
+    printf("#  - parent_id: %d\n", current->parent_id);
+    printf("#  - exit_status: %d\n", current->exit_status);
+    printf("#  - alive: %d\n", current->alive);
+    printf("#  - parent_alive: %d\n", current->parent_alive);
+    printf("# -----------------------------------------\n");
     current = current->next;
   }
 }
