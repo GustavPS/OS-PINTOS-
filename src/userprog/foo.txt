@@ -1,0 +1,229 @@
+Copying ../examples/longrun into /tmp/PbicgjIpKa.dsk...
+Copying ../examples/dummy into /tmp/PbicgjIpKa.dsk...
+Writing command line to /tmp/QZ2g8x4YyX.dsk...
+qemu-system-i386 -drive file=/tmp/QZ2g8x4YyX.dsk,index=0,format=raw -drive file=/tmp/d7QNr2I7HN.dsk,index=1,format=raw -drive file=/tmp/PbicgjIpKa.dsk,index=2,format=raw -m 4 -net none -monitor null -nographic -device isa-debug-exit,iobase=0xf4,iosize=0x04
+Kernel command line: -f -q put longrun put dummy run 'longrun 1 10'
+Pintos booting with 3,968 kB RAM...
+356 pages available in kernel pool.
+355 pages available in user pool.
+# main#1: thread_create("idle", ...) RETURNS 2
+Calibrating timer... 523,776,000 loops/s.
+hd0:0: detected 169 sector (84 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+hd0:1: detected 4,032 sector (1 MB) disk, model "QEMU HARDDISK", serial "QM00002"
+hd1:0: detected 162 sector (81 kB) disk, model "QEMU HARDDISK", serial "QM00003"
+Formatting file system...done.
+Boot complete.
+Putting 'longrun' into the file system...
+Putting 'dummy' into the file system...
+Executing 'longrun 1 10':
+# main#1: process_execute("longrun 1 10") ENTERED
+# main#1: thread_create("longrun", ...) RETURNS 3
+# longrun#3: start_process("longrun 1 10") ENTERED
+# longrun#3: start_process(...): load returned 1
+# line_size = 13
+# line_size (aligned) = 16
+# argc = 3
+# total_size = 44
+# cmd_line_on_stack: longrun 1 10
+# longrun#3: start_process("longrun 1 10") DONE
+Will try to start a total of 10 processes in groups of 1
+# longrun#3: process_execute("dummy 0") ENTERED
+# longrun#3: thread_create("dummy", ...) RETURNS 4
+# main#1: process_execute("longrun 1 10") RETURNS 3
+# main#1: process_wait(3) ENTERED
+# dummy#4: start_process("dummy 0") ENTERED
+# dummy#4: start_process(...): load returned 1
+# line_size = 8
+# line_size (aligned) = 8
+# argc = 2
+# total_size = 32
+# cmd_line_on_stack: dummy 0
+# dummy#4: start_process("dummy 0") DONE
+# ------------ inne i set_exit_status med status: 0
+# SYS_EXIT med koden 0 på tråden dummy med ID: 4
+# dummy#4: process_cleanup() ENTERED
+dummy: exit(0)
+# dummy#4: process_cleanup() DONE with status 0
+# longrun#3: process_execute("dummy 0") RETURNS 4
+# longrun#3: process_wait(4) ENTERED
+# longrun#3: process_wait(4) RETURNS 0
+# longrun#3: process_execute("dummy 1") ENTERED
+# longrun#3: thread_create("dummy", ...) RETURNS 5
+# dummy#5: start_process("dummy 1") ENTERED
+# dummy#5: start_process(...): load returned 1
+# line_size = 8
+# line_size (aligned) = 8
+# argc = 2
+# total_size = 32
+# cmd_line_on_stack: dummy 1
+# dummy#5: start_process("dummy 1") DONE
+# ------------ inne i set_exit_status med status: 1
+# SYS_EXIT med koden 1 på tråden dummy med ID: 5
+# dummy#5: process_cleanup() ENTERED
+dummy: exit(1)
+# dummy#5: process_cleanup() DONE with status 1
+# longrun#3: process_execute("dummy 1") RETURNS 5
+# longrun#3: process_wait(5) ENTERED
+# longrun#3: process_wait(5) RETURNS 1
+# longrun#3: process_execute("dummy 2") ENTERED
+# longrun#3: thread_create("dummy", ...) RETURNS 6
+# dummy#6: start_process("dummy 2") ENTERED
+# dummy#6: start_process(...): load returned 1
+# line_size = 8
+# line_size (aligned) = 8
+# argc = 2
+# total_size = 32
+# cmd_line_on_stack: dummy 2
+# dummy#6: start_process("dummy 2") DONE
+# ------------ inne i set_exit_status med status: 2
+# SYS_EXIT med koden 2 på tråden dummy med ID: 6
+# dummy#6: process_cleanup() ENTERED
+dummy: exit(2)
+# dummy#6: process_cleanup() DONE with status 2
+# longrun#3: process_execute("dummy 2") RETURNS 6
+# longrun#3: process_wait(6) ENTERED
+# longrun#3: process_wait(6) RETURNS 2
+# longrun#3: process_execute("dummy 3") ENTERED
+# longrun#3: thread_create("dummy", ...) RETURNS 7
+# dummy#7: start_process("dummy 3") ENTERED
+# dummy#7: start_process(...): load returned 1
+# line_size = 8
+# line_size (aligned) = 8
+# argc = 2
+# total_size = 32
+# cmd_line_on_stack: dummy 3
+# dummy#7: start_process("dummy 3") DONE
+# longrun#3: process_execute("dummy 3") RETURNS 7
+# longrun#3: process_wait(7) ENTERED
+# ------------ inne i set_exit_status med status: 3
+# SYS_EXIT med koden 3 på tråden dummy med ID: 7
+# dummy#7: process_cleanup() ENTERED
+dummy: exit(3)
+# dummy#7: process_cleanup() DONE with status 3
+# longrun#3: process_wait(7) RETURNS 3
+# longrun#3: process_execute("dummy 4") ENTERED
+# longrun#3: thread_create("dummy", ...) RETURNS 8
+# dummy#8: start_process("dummy 4") ENTERED
+# dummy#8: start_process(...): load returned 1
+# line_size = 8
+# line_size (aligned) = 8
+# argc = 2
+# total_size = 32
+# cmd_line_on_stack: dummy 4
+# dummy#8: start_process("dummy 4") DONE
+# ------------ inne i set_exit_status med status: 4
+# SYS_EXIT med koden 4 på tråden dummy med ID: 8
+# dummy#8: process_cleanup() ENTERED
+dummy: exit(4)
+# dummy#8: process_cleanup() DONE with status 4
+# longrun#3: process_execute("dummy 4") RETURNS 8
+# longrun#3: process_wait(8) ENTERED
+# longrun#3: process_wait(8) RETURNS 4
+# longrun#3: process_execute("dummy 5") ENTERED
+# longrun#3: thread_create("dummy", ...) RETURNS 9
+# dummy#9: start_process("dummy 5") ENTERED
+# dummy#9: start_process(...): load returned 1
+# line_size = 8
+# line_size (aligned) = 8
+# argc = 2
+# total_size = 32
+# cmd_line_on_stack: dummy 5
+# dummy#9: start_process("dummy 5") DONE
+# ------------ inne i set_exit_status med status: 5
+# SYS_EXIT med koden 5 på tråden dummy med ID: 9
+# dummy#9: process_cleanup() ENTERED
+dummy: exit(5)
+# dummy#9: process_cleanup() DONE with status 5
+# longrun#3: process_execute("dummy 5") RETURNS 9
+# longrun#3: process_wait(9) ENTERED
+# longrun#3: process_wait(9) RETURNS 5
+# longrun#3: process_execute("dummy 6") ENTERED
+# longrun#3: thread_create("dummy", ...) RETURNS 10
+# dummy#10: start_process("dummy 6") ENTERED
+# dummy#10: start_process(...): load returned 1
+# line_size = 8
+# line_size (aligned) = 8
+# argc = 2
+# total_size = 32
+# cmd_line_on_stack: dummy 6
+# dummy#10: start_process("dummy 6") DONE
+# ------------ inne i set_exit_status med status: 6
+# SYS_EXIT med koden 6 på tråden dummy med ID: 10
+# dummy#10: process_cleanup() ENTERED
+dummy: exit(6)
+# longrun#3: process_execute("dummy 6") RETURNS 10
+# longrun#3: process_wait(10) ENTERED
+# dummy#10: process_cleanup() DONE with status 6
+# longrun#3: process_wait(10) RETURNS 6
+# longrun#3: process_execute("dummy 7") ENTERED
+# longrun#3: thread_create("dummy", ...) RETURNS 11
+# dummy#11: start_process("dummy 7") ENTERED
+# dummy#11: start_process(...): load returned 1
+# line_size = 8
+# line_size (aligned) = 8
+# argc = 2
+# total_size = 32
+# cmd_line_on_stack: dummy 7
+# dummy#11: start_process("dummy 7") DONE
+# ------------ inne i set_exit_status med status: 7
+# SYS_EXIT med koden 7 på tråden dummy med ID: 11
+# dummy#11: process_cleanup() ENTERED
+dummy: exit(7)
+# dummy#11: process_cleanup() DONE with status 7
+# longrun#3: process_execute("dummy 7") RETURNS 11
+# longrun#3: process_wait(11) ENTERED
+# longrun#3: process_wait(11) RETURNS 7
+# longrun#3: process_execute("dummy 8") ENTERED
+# longrun#3: thread_create("dummy", ...) RETURNS 12
+# dummy#12: start_process("dummy 8") ENTERED
+# dummy#12: start_process(...): load returned 1
+# line_size = 8
+# line_size (aligned) = 8
+# argc = 2
+# total_size = 32
+# cmd_line_on_stack: dummy 8
+# dummy#12: start_process("dummy 8") DONE
+# ------------ inne i set_exit_status med status: 8
+# SYS_EXIT med koden 8 på tråden dummy med ID: 12
+# dummy#12: process_cleanup() ENTERED
+dummy: exit(8)
+# dummy#12: process_cleanup() DONE with status 8
+# longrun#3: process_execute("dummy 8") RETURNS 12
+# longrun#3: process_wait(12) ENTERED
+# longrun#3: process_wait(12) RETURNS 8
+# longrun#3: process_execute("dummy 9") ENTERED
+# longrun#3: thread_create("dummy", ...) RETURNS 13
+# dummy#13: start_process("dummy 9") ENTERED
+# dummy#13: start_process(...): load returned 1
+# line_size = 8
+# line_size (aligned) = 8
+# argc = 2
+# total_size = 32
+# cmd_line_on_stack: dummy 9
+# dummy#13: start_process("dummy 9") DONE
+# ------------ inne i set_exit_status med status: 9
+# SYS_EXIT med koden 9 på tråden dummy med ID: 13
+# dummy#13: process_cleanup() ENTERED
+dummy: exit(9)
+# dummy#13: process_cleanup() DONE with status 9
+# longrun#3: process_execute("dummy 9") RETURNS 13
+# longrun#3: process_wait(13) ENTERED
+# longrun#3: process_wait(13) RETURNS 9
+# ------------ inne i set_exit_status med status: 0
+# SYS_EXIT med koden 0 på tråden longrun med ID: 3
+# longrun#3: process_cleanup() ENTERED
+longrun: exit(0)
+# longrun#3: process_cleanup() DONE with status 0
+# main#1: process_wait(3) RETURNS 0
+Execution of 'longrun 1 10' complete.
+# Preparing to power off...
+Timer: 1000 interrupts per second
+Timer: 643 ticks
+Thread: 32 idle ticks, 400 kernel ticks, 212 user ticks
+hd0:0: 0 reads, 0 writes
+hd0:1: 344 reads, 334 writes
+hd1:0: 162 reads, 0 writes
+Console: 8300 characters output
+Keyboard: 0 keys pressed
+Exception: 0 page faults
+Powering off...

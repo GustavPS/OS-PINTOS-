@@ -38,7 +38,10 @@ struct inode
     int open_cnt;                       /* Number of openers. */
     bool removed;                       /* True if deleted, false otherwise. */
     struct inode_disk data;             /* Inode content. */
+    struct lock inode_lock;             /* Inode lock. */
   };
+
+static struct lock inode_global_lock;
 
 
 /* Returns the disk sector that contains byte offset POS within
@@ -48,11 +51,16 @@ struct inode
 static disk_sector_t
 byte_to_sector (const struct inode *inode, off_t pos) 
 {
+  int result = -1;
+  // LÅS HELA TROR VI
+  //lock_acquire(&inode->inode_lock);
+
   ASSERT (inode != NULL);
   if (pos < inode->data.length)
-    return inode->data.start + pos / DISK_SECTOR_SIZE;
-  else
-    return -1;
+    result = inode->data.start + pos / DISK_SECTOR_SIZE;
+
+  //lock_release(&inode->inode_lock);
+  return result;
 }
 
 /* List of open inodes, so that opening a single inode twice
@@ -64,12 +72,13 @@ void
 inode_init (void) 
 {
   list_init (&open_inodes);
+  lock_init(&inode_global_lock);
 }
 
 /* Initializes an inode with LENGTH bytes of data and
    writes the new inode to sector SECTOR on the file system
    disk.
-   Returns true if successful.
+   Returns true if successful.create
    Returns false if memory or disk allocation fails. */
 bool
 inode_create (disk_sector_t sector, off_t length)
@@ -89,10 +98,10 @@ inode_create (disk_sector_t sector, off_t length)
       size_t sectors = bytes_to_sectors (length);
       disk_inode->length = length;
       disk_inode->magic = INODE_MAGIC;
-      if (free_map_allocate (sectors, &disk_inode->start))
+      if (free_map_allocate (sectors, &disk_inode->start)) // Blir låst i free-map (hoppas jag)
         {
           disk_write (filesys_disk, sector, disk_inode);
-          if (sectors > 0) 
+          if (sectors > 0)
             {
               static char zeros[DISK_SECTOR_SIZE];
               size_t i;
@@ -100,8 +109,8 @@ inode_create (disk_sector_t sector, off_t length)
               for (i = 0; i < sectors; i++) 
                 disk_write (filesys_disk, disk_inode->start + i, zeros); 
             }
-          success = true; 
-        } 
+          success = true;
+        }
       free (disk_inode);
     }
   return success;
@@ -115,36 +124,44 @@ inode_open (disk_sector_t sector)
 {
   struct list_elem *e;
   struct inode *inode;
+  bool is_open = false;
 
   
   /* Check whether this inode is already open. */
+  // LÅS HELA LOOPEN EFTERSOM OPEN_INODES ÄR GLOBAL?
+  lock_acquire(&inode_global_lock);
   for (e = list_begin (&open_inodes); e != list_end (&open_inodes);
-       e = list_next (e)) 
+       e = list_next (e))
     {
       inode = list_entry (e, struct inode, elem);
       if (inode->sector == sector) 
         {
+          is_open = true;
           inode_reopen (inode);
-          return inode; 
+          break;
         }
     }
 
-  /* Allocate memory. */
-  inode = malloc (sizeof *inode);
-  if (inode == NULL)
-  {
-    return NULL;
+
+
+  if (!is_open) {
+    /* Allocate memory. */
+    inode = malloc(sizeof *inode);
+    if (inode != NULL) {
+
+      // LÅS OM VI ANTAR ATT LIST_PUSH_FRONT INTE ÄR TRÅDSÄKER
+      list_push_front(&open_inodes, &inode->elem);
+
+      /* Initialize. */
+      inode->sector = sector;
+      inode->open_cnt = 1;
+      inode->removed = false;
+      lock_init(&inode->inode_lock);
+
+      disk_read(filesys_disk, inode->sector, &inode->data);
+    }
   }
-  
-  list_push_front (&open_inodes, &inode->elem);
-  
-  /* Initialize. */
-  inode->sector = sector;
-  inode->open_cnt = 1;
-  inode->removed = false;
-  
-  disk_read (filesys_disk, inode->sector, &inode->data);
-  
+  lock_release(&inode_global_lock);
   return inode;
 }
 
@@ -152,17 +169,19 @@ inode_open (disk_sector_t sector)
 struct inode *
 inode_reopen (struct inode *inode)
 {
+  // Kanske behöver låsas, inode kan ändras medans den kör, men är det ens möjligt då vi låser for-loopen över?
+  lock_acquire(&inode->inode_lock);
   if (inode != NULL)
   {
     inode->open_cnt++;
   }
+  lock_release(&inode->inode_lock);
   return inode;
 }
 
 /* Returns INODE's inode number. */
 disk_sector_t
-inode_get_inumber (const struct inode *inode)
-{
+inode_get_inumber (const struct inode *inode) {
   return inode->sector;
 }
 
@@ -172,29 +191,27 @@ inode_get_inumber (const struct inode *inode)
 void
 inode_close (struct inode *inode) 
 {
+  // Lås hela if satsen eftersom inode kan bli NULL efter föregående IF-sats
   /* Ignore null pointer. */
-  if (inode == NULL)
-    return;
+  lock_acquire(&inode_global_lock);
+  if (inode != NULL) {
 
-    
-  /* Release resources if this was the last opener. */
-  if (--inode->open_cnt == 0)
-    {
+    /* Release resources if this was the last opener. */
+    if (--inode->open_cnt == 0) {
       /* Remove from inode list. */
-      list_remove (&inode->elem);
-      
- 
-      /* Deallocate blocks if the file is marked as removed. */
-      if (inode->removed) 
-        {
-          free_map_release (inode->sector, 1);
-          free_map_release (inode->data.start,
-                            bytes_to_sectors (inode->data.length)); 
-        }
+      list_remove(&inode->elem);
 
-      free (inode);
-      return;
+
+      /* Deallocate blocks if the file is marked as removed. */
+      if (inode->removed) {
+        free_map_release(inode->sector, 1);
+        free_map_release(inode->data.start,
+                         bytes_to_sectors(inode->data.length));
+      }
+      free(inode);
     }
+  }
+  lock_release(&inode_global_lock);
 }
 
 /* Marks INODE to be deleted when it is closed by the last caller who
@@ -202,8 +219,13 @@ inode_close (struct inode *inode)
 void
 inode_remove (struct inode *inode) 
 {
+  // Lås eftersom inode kan bli NULL efter checken
+  lock_acquire(&inode->inode_lock);
+
   ASSERT (inode != NULL);
   inode->removed = true;
+
+  lock_release(&inode->inode_lock);
 }
 
 /* Reads SIZE bytes from INODE into BUFFER, starting at position OFFSET.
@@ -212,18 +234,23 @@ inode_remove (struct inode *inode)
 off_t
 inode_read_at (struct inode *inode, void *buffer_, off_t size, off_t offset) 
 {
+  if (inode == NULL)
+    return 0;
+  //lock_acquire(&inode_global_lock);
+
   uint8_t *buffer = buffer_;
   off_t bytes_read = 0;
   uint8_t *bounce = NULL;
-  
-  while (size > 0) 
+
+  // Lås hela while loopen
+  while (size > 0)
     {
       /* Disk sector to read, starting byte offset within sector. */
       disk_sector_t sector_idx = byte_to_sector (inode, offset);
       int sector_ofs = offset % DISK_SECTOR_SIZE;
 
       /* Bytes left in inode, bytes left in sector, lesser of the two. */
-      off_t inode_left = inode_length (inode) - offset;
+      off_t inode_left = inode_length (inode) - offset; // Hela funktionen måste låsas om inode kan bli null
       int sector_left = DISK_SECTOR_SIZE - sector_ofs;
       int min_left = inode_left < sector_left ? inode_left : sector_left;
 
@@ -248,7 +275,7 @@ inode_read_at (struct inode *inode, void *buffer_, off_t size, off_t offset)
                 break;
             }
           disk_read (filesys_disk, sector_idx, bounce);
-          memcpy (buffer + bytes_read, bounce + sector_ofs, chunk_size);
+          memcpy (buffer + bytes_read, bounce + sector_ofs, chunk_size); // Om memcpy inte är säker måste det antingen låsas här eller vid memcpy funktionen
         }
       
       /* Advance. */
@@ -257,7 +284,7 @@ inode_read_at (struct inode *inode, void *buffer_, off_t size, off_t offset)
       bytes_read += chunk_size;
     }
   free (bounce);
-
+  //lock_release(&inode_global_lock);
   return bytes_read;
 }
 
@@ -270,12 +297,17 @@ off_t
 inode_write_at (struct inode *inode, const void *buffer_, off_t size,
                 off_t offset) 
 {
+  if (inode == NULL)
+    return 0;
+
+  //lock_acquire(&inode_global_lock);
   const uint8_t *buffer = buffer_;
   off_t bytes_written = 0;
   uint8_t *bounce = NULL;
 
-    
-  while (size > 0) 
+
+  // Lås hela while loopen eftersom den skriver flera gånger
+  while (size > 0)
     {
       /* Sector to write, starting byte offset within sector. */
       disk_sector_t sector_idx = byte_to_sector (inode, offset);
@@ -323,6 +355,7 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
       bytes_written += chunk_size;
     }
   free (bounce);
+  //lock_release(&inode_global_lock);
 
   return bytes_written;
 }

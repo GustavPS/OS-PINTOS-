@@ -86,5 +86,6 @@ int main(int argc, char* argv[])
       wait(pid[i]);      
     }
   }
+  plist();
   return 0;
 }

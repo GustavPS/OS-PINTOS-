@@ -29,10 +29,12 @@ void pnode_copy(struct pnode* to, struct pnode* from)
 void plist_init(struct plist* pl)
 {
   pl->first = NULL;
+  lock_init(&pl->plist_lock);
 }
 
 int plist_insert(struct plist* pl, tid_t proc_id, tid_t parent_id, char* name)
 {
+  lock_acquire(&pl->plist_lock);
   struct pnode* current = pl->first;
   struct pnode* prevNode;
   int count = 0;
@@ -54,36 +56,27 @@ int plist_insert(struct plist* pl, tid_t proc_id, tid_t parent_id, char* name)
     prevNode->next = newValue;
   }
 
+  lock_release(&pl->plist_lock);
   return proc_id;
 }
 
 struct pnode* plist_find(struct plist* pl, int proc_id)
 {
+  lock_acquire(&pl->plist_lock);
   struct pnode* current = pl->first;
 
   while (current != NULL && current->proc_id != proc_id)
   {
     current = current->next;
   }
-
+  lock_release(&pl->plist_lock);
   return current;
-  /*
-  struct pnode returnNode;
-  if (current == NULL)
-  {
-    memset(&returnNode, 0, sizeof(struct pnode)); // Set everything to "null"
-  }
-  else
-  {
-    pnode_copy(&returnNode, current);
-    returnNode.next = NULL;
-  }
-  return returnNode;
-   */
 }
 
 void plist_remove(struct plist* pl, int proc_id, bool force)
 {
+  lock_acquire(&pl->plist_lock);
+
   struct pnode* current = pl->first;
   struct pnode* prevNode = pl->first;
   int count = 0;
@@ -131,10 +124,12 @@ void plist_remove(struct plist* pl, int proc_id, bool force)
       }
     }
   }
+  lock_release(&pl->plist_lock);
 }
 
 void plist_update_exit(struct plist* pl, tid_t proc_id, int exit_status)
 {
+  lock_acquire(&pl->plist_lock);
   struct pnode* current = pl->first;
 
   while (current != NULL && current->proc_id != proc_id)
@@ -146,10 +141,12 @@ void plist_update_exit(struct plist* pl, tid_t proc_id, int exit_status)
   {
     current->exit_status = exit_status;
   }
+  lock_release(&pl->plist_lock);
 }
 
 void plist_print(struct plist* pl)
 {
+  lock_acquire(&pl->plist_lock);
   struct pnode* current = pl->first;
   printf("# plist_print:\n");
   printf("# -----------------------------------------\n");
@@ -163,4 +160,5 @@ void plist_print(struct plist* pl)
     printf("# -----------------------------------------\n");
     current = current->next;
   }
+  lock_release(&pl->plist_lock);
 }

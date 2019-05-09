@@ -4,9 +4,12 @@
 #include "filesys/file.h"
 #include "filesys/filesys.h"
 #include "filesys/inode.h"
+#include "threads/synch.h"
+
 
 static struct file *free_map_file;   /* Free map file. */
 static struct bitmap *free_map;      /* Free map, one bit per disk sector. */
+static struct lock lock_map;
 
 
 /* Initializes the free map. */
@@ -18,6 +21,7 @@ free_map_init (void)
     PANIC ("bitmap creation failed--disk is too large");
   bitmap_mark (free_map, FREE_MAP_SECTOR);
   bitmap_mark (free_map, ROOT_DIR_SECTOR);
+  lock_init(&lock_map);
 }
 
 /* Allocates CNT consecutive sectors from the free map and stores
@@ -28,8 +32,11 @@ bool
 free_map_allocate (size_t cnt, disk_sector_t *sectorp) 
 {
   disk_sector_t sector;
-  
-  sector = bitmap_scan_and_flip (free_map, 0, cnt, false);
+
+  lock_acquire(&lock_map);
+  sector = bitmap_scan_and_flip (free_map, 0, cnt, false); // LÅS HÄR
+
+
   if (sector != BITMAP_ERROR
       && free_map_file != NULL
       && !bitmap_write (free_map, free_map_file))
@@ -37,9 +44,11 @@ free_map_allocate (size_t cnt, disk_sector_t *sectorp)
       bitmap_set_multiple (free_map, sector, cnt, false); 
       sector = BITMAP_ERROR;
     }
-  
+
+  lock_release(&lock_map);
+
   if (sector != BITMAP_ERROR)
-    *sectorp = sector;
+    *sectorp = sector; // Borde antagligen låsas
   return sector != BITMAP_ERROR;
 }
 
@@ -47,20 +56,29 @@ free_map_allocate (size_t cnt, disk_sector_t *sectorp)
 void
 free_map_release (disk_sector_t sector, size_t cnt)
 {
+  lock_acquire(&lock_map);
+
   ASSERT (bitmap_all (free_map, sector, cnt));
   bitmap_set_multiple (free_map, sector, cnt, false);
   bitmap_write (free_map, free_map_file);
+
+  lock_release(&lock_map);
 }
 
 /* Opens the free map file and reads it from disk. */
 void
 free_map_open (void) 
 {
+  // LÅS HELA FUNKTIONEN
+  lock_acquire(&lock_map);
+
   free_map_file = file_open (inode_open (FREE_MAP_SECTOR));
   if (free_map_file == NULL)
     PANIC ("can't open free map");
   if (!bitmap_read (free_map, free_map_file))
     PANIC ("can't read free map");
+
+  lock_release(&lock_map);
 }
 
 /* Writes the free map to disk and closes the free map file. */
@@ -75,14 +93,20 @@ free_map_close (void)
 void
 free_map_create (void) 
 {
+
   /* Create inode. */
-  if (!inode_create (FREE_MAP_SECTOR, bitmap_file_size (free_map)))
+  if (!inode_create (FREE_MAP_SECTOR, bitmap_file_size (free_map))) // Borde låsas på inode_create
     PANIC ("free map creation failed");
 
   /* Write bitmap to file. */
+  // Lås detta
+  lock_acquire(&lock_map);
+
   free_map_file = file_open (inode_open (FREE_MAP_SECTOR));
   if (free_map_file == NULL)
     PANIC ("can't open free map");
   if (!bitmap_write (free_map, free_map_file))
     PANIC ("can't write free map");
+
+  lock_release(&lock_map);
 }

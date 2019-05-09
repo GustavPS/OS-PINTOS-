@@ -52,6 +52,7 @@ void pnode_copy(struct pnode*, struct pnode*); // Copy from the right to the lef
 struct plist
 {
   struct pnode* first;
+  struct lock plist_lock;
 };
 
 void         plist_init(struct plist*);
