@@ -39,6 +39,8 @@ struct inode
     bool removed;                       /* True if deleted, false otherwise. */
     struct inode_disk data;             /* Inode content. */
     struct lock inode_lock;             /* Inode lock. */
+    struct semaphore inode_sema;
+    int is_reading;
   };
 
 static struct lock inode_global_lock;
@@ -156,7 +158,9 @@ inode_open (disk_sector_t sector)
       inode->sector = sector;
       inode->open_cnt = 1;
       inode->removed = false;
+      inode->is_reading = 0;
       lock_init(&inode->inode_lock);
+      sema_init(&inode->inode_sema, 1);
 
       disk_read(filesys_disk, inode->sector, &inode->data);
     }
@@ -236,11 +240,16 @@ inode_read_at (struct inode *inode, void *buffer_, off_t size, off_t offset)
 {
   if (inode == NULL)
     return 0;
-  //lock_acquire(&inode_global_lock);
+
+  lock_acquire(&inode->inode_lock);
+  if(inode->is_reading == 0)
+    sema_down(&inode->inode_sema);
+  inode->is_reading++;
+  lock_release(&inode->inode_lock);
 
   uint8_t *buffer = buffer_;
   off_t bytes_read = 0;
-  uint8_t *bounce = NULL;
+  uint8_t * bounce = NULL;
 
   // Lås hela while loopen
   while (size > 0)
@@ -284,7 +293,13 @@ inode_read_at (struct inode *inode, void *buffer_, off_t size, off_t offset)
       bytes_read += chunk_size;
     }
   free (bounce);
-  //lock_release(&inode_global_lock);
+
+  lock_acquire(&inode->inode_lock);
+  inode->is_reading--;
+  if(inode->is_reading == 0)
+    sema_up(&inode->inode_sema);
+  lock_release(&inode->inode_lock);
+
   return bytes_read;
 }
 
@@ -300,7 +315,8 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
   if (inode == NULL)
     return 0;
 
-  //lock_acquire(&inode_global_lock);
+  sema_down(&inode->inode_sema);
+
   const uint8_t *buffer = buffer_;
   off_t bytes_written = 0;
   uint8_t *bounce = NULL;
@@ -355,8 +371,8 @@ inode_write_at (struct inode *inode, const void *buffer_, off_t size,
       bytes_written += chunk_size;
     }
   free (bounce);
-  //lock_release(&inode_global_lock);
 
+  sema_up(&inode->inode_sema);
   return bytes_written;
 }
 
