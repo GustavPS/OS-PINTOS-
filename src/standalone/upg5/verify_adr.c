@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 #include "pagedir.h"
 #include "thread.h"
 
@@ -18,13 +20,25 @@
  *
  *  gcc -Wall -Wextra -std=gnu99 -pedantic -m32 -g pagedir.o verify_adr.c
  */
-#error Read comment above and then remove this line.
 
 /* Verify all addresses from and including 'start' up to but excluding
  * (start+length). */
 bool verify_fix_length(void* start, int length)
 {
-  // ADD YOUR CODE HERE
+  int last_working_page = -1;
+  bool result = true;
+
+  int start_po = pg_no(start);
+  int end_po = pg_no(((char*)start) + length - 1);
+  char* curr = pg_round_down((void*)start);
+  for (int i = start_po; i <= end_po; i++) {
+    if (pagedir_get_page(thread_current()->pagedir, curr) == NULL) {
+      result = false;
+      break;
+    }
+    curr = curr + PGSIZE;
+  }
+  return result;
 }
 
 /* Verify all addresses from and including 'start' up to and including
@@ -33,7 +47,27 @@ bool verify_fix_length(void* start, int length)
  */
 bool verify_variable_length(char* start)
 {
-  // ADD YOUR CODE HERE
+  void* first_addr;
+  char* curr = start;
+  bool found_end = false;
+  while (!found_end) {
+    first_addr = pg_round_down((void*)curr); // Hämta första adressen i pagen som curr ligger i
+    if (pagedir_get_page(thread_current()->pagedir, first_addr) == NULL) { // Om den fysiska adressem är ogiltig returnera false
+      return false;
+    }
+    int start_page = pg_no(curr); // Hämta pagensom curr ligger på.
+    int curr_page = start_page;
+    while (curr_page == start_page) {
+      if (is_end_of_string(curr)) { // Kolla om vi har kommit till \0, om vi har det så sätt found_end till true så vi går ut ur loopen.
+        found_end = true;
+        break;
+      }
+      // Sätt curr till nästa adress samt hämta page_number f ör den
+      curr = curr + 1;
+      curr_page = pg_no(curr);
+    }
+  }
+  return true;
 }
 
 /* Definition of test cases. */
