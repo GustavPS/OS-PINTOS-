@@ -5,8 +5,12 @@ struct thread;
 
 void syscall_init (void);
 
+bool verify_fix_length(void*, int);
+bool verify_variable_length(char*);
+bool pointer_validation(void*, size_t);
+bool variable_validation(char*);
 void halt(void);
-void exit(int32_t*);
+void exit(int);
 int read(int32_t*);
 int write(int32_t*);
 int open(int32_t*);

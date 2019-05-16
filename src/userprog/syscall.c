@@ -43,6 +43,69 @@ const int argc[] = {
   0
 };
 
+/* Verify all addresses from and including 'start' up to but excluding
+ * (start+length). */
+bool verify_fix_length(void* start, int length)
+{
+  // int last_working_page = -1;
+  bool result = true;
+
+  int start_po = pg_no(start);
+  int end_po = pg_no(((char*)start) + length - 1);
+  char* curr = pg_round_down((void*)start);
+  for (int i = start_po; i <= end_po; i++) {
+    if (pagedir_get_page(thread_current()->pagedir, curr) == NULL) {
+      result = false;
+      break;
+    }
+    curr = curr + PGSIZE;
+  }
+  return result;
+}
+
+/* Verify all addresses from and including 'start' up to and including
+ * the address first containg a null-character ('\0'). (The way
+ * C-strings are stored.)
+ */
+bool verify_variable_length(char* start)
+{
+  void* first_addr;
+  char* curr = start;
+  bool found_end = false;
+  while (!found_end) {
+    first_addr = pg_round_down((void*)curr); // Hämta första adressen i pagen som curr ligger i
+    if (pagedir_get_page(thread_current()->pagedir, first_addr) == NULL) { // Om den fysiska adressem är ogiltig returnera false
+      return false;
+    }
+    int start_page = pg_no(curr); // Hämta pagensom curr ligger på.
+    int curr_page = start_page;
+    while (curr_page == start_page) {
+      if (*curr == '\0') { // Kolla om vi har kommit till \0, om vi har det så sätt found_end till true så vi går ut ur loopen.
+        found_end = true;
+        break;
+      }
+      // Sätt curr till nästa adress samt hämta page_number f ör den
+      curr = curr + 1;
+      curr_page = pg_no(curr);
+    }
+  }
+  return true;
+}
+
+bool pointer_validation(void* p, size_t length)
+{
+  if (p == NULL || is_kernel_vaddr(p) || !verify_fix_length(p, length))
+    return false;
+  return true;
+}
+
+bool variable_validation(char* p)
+{
+  if (p == NULL || is_kernel_vaddr(p) || !verify_variable_length(p))
+    return false;
+  return true;
+}
+
 // Returns fp or NULL
 struct file* get_file(struct thread* t, int fd)
 {
@@ -56,9 +119,8 @@ void halt()
   power_off();
 }
 
-void exit(int32_t* esp)
+void exit(int exit_code)
 {
-  int exit_code = *(esp+1);
   struct thread* current = thread_current();
   set_exit_status(exit_code);
 
@@ -72,6 +134,10 @@ int read(int32_t* esp)
   char *buffer    = (char*) *(esp+2);
   int length      = *(esp+3);
   int count       = 0;
+
+  // Kollar om buffer pekaren är korrekt
+  if (!pointer_validation(buffer, length))
+    exit(-1);
 
   switch (fd)
   {
@@ -103,6 +169,10 @@ int write(int32_t* esp)
   char *buffer    = (char*) *(esp+2);
   int length      = *(esp+3);
 
+  // Kollar om buffer pekaren är korrekt
+  if (!pointer_validation(buffer, sizeof(buffer)))
+    exit(-1);
+
   switch(fd)
   {
     case (STDOUT_FILENO):
@@ -123,6 +193,9 @@ int write(int32_t* esp)
 int open(int32_t* esp)
 {
   char*  file_name = (char*) *(esp+1);
+  if (!variable_validation(file_name))
+    exit(-1);
+
   struct file* fp  = filesys_open(file_name);
   int    fd        = -1;
 
@@ -138,6 +211,8 @@ bool create(int32_t* esp)
   char* file_name       = (char*) *(esp+1);
   unsigned initial_size = *(esp+2);
 
+  if (!variable_validation(file_name))
+    exit(-1);
   return filesys_create(file_name, initial_size);
 }
 
@@ -153,7 +228,8 @@ void close(int32_t* esp)
 bool remove(int32_t* esp)
 {
   char* file_name = (char*) *(esp+1);
-
+  if (!variable_validation(file_name))
+    exit(-1);
   return filesys_remove(file_name);
 }
 
@@ -210,7 +286,9 @@ void sleep(int32_t* esp)
 
 int exec(int32_t* esp)
 {
-  const char* command_line = (char*) *(esp+1);
+  char* command_line = (char*) *(esp+1);
+  if (!variable_validation(command_line))
+    exit(-1);
   return process_execute(command_line);
 }
 
@@ -225,6 +303,16 @@ syscall_handler (struct intr_frame *f)
 {
   int32_t* esp = (int32_t*)f->esp;
 
+  // Validate ESP
+  if (!pointer_validation(esp, sizeof(esp)))
+    exit(-1);
+
+  int sys_read_arg_count = argc[*esp];
+  for (int i = 1; i <= sys_read_arg_count; i++) {
+    if(!pointer_validation(&esp[i], sizeof(esp[i])))
+      exit(-1);
+  }
+
   // *ESP ger vilken interupt som ska köras.
 
   switch (*esp)
@@ -236,7 +324,7 @@ syscall_handler (struct intr_frame *f)
     }
     case (SYS_EXIT):
     {
-      exit(esp);
+      exit(*(esp+1));
       break;
     }
     case (SYS_READ):
