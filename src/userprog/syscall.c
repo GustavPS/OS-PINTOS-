@@ -19,7 +19,7 @@
 static void syscall_handler (struct intr_frame *);
 
 void
-syscall_init (void) 
+syscall_init (void)
 {
   intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
 }
@@ -28,15 +28,15 @@ syscall_init (void)
 /* This array defined the number of arguments each syscall expects.
    For example, if you want to find out the number of arguments for
    the read system call you shall write:
-   
+
    int sys_read_arg_count = argc[ SYS_READ ];
-   
+
    All system calls have a name such as SYS_READ defined as an enum
    type, see `lib/syscall-nr.h'. Use them instead of numbers.
  */
 const int argc[] = {
   /* basic calls */
-  0, 1, 1, 1, 2, 1, 1, 1, 3, 3, 2, 1, 1, 
+  0, 1, 1, 1, 2, 1, 1, 1, 3, 3, 2, 1, 1,
   /* not implemented */
   2, 1,    1, 1, 2, 1, 1,
   /* extended */
@@ -94,16 +94,12 @@ bool verify_variable_length(char* start)
 
 bool pointer_validation(void* p, size_t length)
 {
-  if (p == NULL || is_kernel_vaddr(p) || !verify_fix_length(p, length))
-    return false;
-  return true;
+  return !(p == NULL || is_kernel_vaddr(p) || !verify_fix_length(p, length));
 }
 
 bool variable_validation(char* p)
 {
-  if (p == NULL || is_kernel_vaddr(p) || !verify_variable_length(p))
-    return false;
-  return true;
+  return !(p == NULL || is_kernel_vaddr(p) || !verify_variable_length(p));
 }
 
 // Returns fp or NULL
@@ -170,7 +166,7 @@ int write(int32_t* esp)
   int length      = *(esp+3);
 
   // Kollar om buffer pekaren är korrekt
-  if (!pointer_validation(buffer, sizeof(buffer)))
+  if (!pointer_validation(buffer, length))
     exit(-1);
 
   switch(fd)
@@ -299,14 +295,15 @@ int wait(int32_t* esp)
 }
 
 static void
-syscall_handler (struct intr_frame *f) 
+syscall_handler (struct intr_frame *f)
 {
   int32_t* esp = (int32_t*)f->esp;
 
   // Validate ESP
-  if (!pointer_validation(esp, sizeof(esp)))
+   if (!pointer_validation(esp, sizeof(esp)))
     exit(-1);
 
+  // Kolla alla argument
   int sys_read_arg_count = argc[*esp];
   for (int i = 1; i <= sys_read_arg_count; i++) {
     if(!pointer_validation(&esp[i], sizeof(esp[i])))
@@ -399,7 +396,7 @@ syscall_handler (struct intr_frame *f)
       printf ("ESP: %d\n", *esp);
       printf ("Stack top + 0: %d\n", esp[0]);
       printf ("Stack top + 1: %d\n", esp[1]);
-      
+
       thread_exit ();
     }
   }

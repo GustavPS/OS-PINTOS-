@@ -70,7 +70,7 @@ void
 free_map_open (void) 
 {
   // LÅS HELA FUNKTIONEN
-  lock_acquire(&lock_map);
+  //lock_acquire(&lock_map);
 
   free_map_file = file_open (inode_open (FREE_MAP_SECTOR));
   if (free_map_file == NULL)
@@ -78,7 +78,7 @@ free_map_open (void)
   if (!bitmap_read (free_map, free_map_file))
     PANIC ("can't read free map");
 
-  lock_release(&lock_map);
+  //lock_release(&lock_map);
 }
 
 /* Writes the free map to disk and closes the free map file. */
@@ -100,7 +100,7 @@ free_map_create (void)
 
   /* Write bitmap to file. */
   // Lås detta
-  lock_acquire(&lock_map);
+  //lock_acquire(&lock_map);
 
   free_map_file = file_open (inode_open (FREE_MAP_SECTOR));
   if (free_map_file == NULL)
@@ -108,5 +108,5 @@ free_map_create (void)
   if (!bitmap_write (free_map, free_map_file))
     PANIC ("can't write free map");
 
-  lock_release(&lock_map);
+  //lock_release(&lock_map);
 }
