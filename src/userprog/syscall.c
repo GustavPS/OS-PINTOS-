@@ -47,7 +47,6 @@ const int argc[] = {
  * (start+length). */
 bool verify_fix_length(void* start, int length)
 {
-  // int last_working_page = -1;
   bool result = true;
 
   int start_po = pg_no(start);

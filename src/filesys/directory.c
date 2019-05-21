@@ -7,13 +7,14 @@
 #include "threads/malloc.h"
 #include "threads/synch.h"
 
+struct lock dir_lock;
 
 /* A directory. */
 struct dir 
   {
     struct inode *inode;                /* Backing store. */
     off_t pos;                          /* Current position. */
-    struct lock dir_lock;               /* Dir lock. */
+    // struct lock dir_lock;               /* Dir lock. */
   };
 
 /* A single directory entry. */
@@ -23,6 +24,12 @@ struct dir_entry
     char name[NAME_MAX + 1];            /* Null terminated file name. */
     bool in_use;                        /* In use or free? */
   };
+
+
+void dir_init(void)
+{
+  lock_init(&dir_lock);
+}
 
 /* Creates a directory with space for ENTRY_CNT entries in the
    given SECTOR.  Returns true if successful, false on failure. */
@@ -43,7 +50,7 @@ dir_open   // Lås eftersom inode kan bli NULL efter checken
     {
       dir->inode = inode;
       dir->pos = 0;
-      lock_init(&dir->dir_lock);
+      // lock_init(&dir->dir_lock);
       return dir;
     }
   else
@@ -97,6 +104,7 @@ static bool
 lookup (const struct dir *dir, const char *name,
         struct dir_entry *ep, off_t *ofsp) 
 {
+  // Måste låsas
   struct dir_entry e;
   size_t ofs;
   
@@ -124,15 +132,18 @@ bool
 dir_lookup (const struct dir *dir, const char *name,
             struct inode **inode) 
 {
+  // Måste låsas
   struct dir_entry e;
 
   ASSERT (dir != NULL);
   ASSERT (name != NULL);
 
+  lock_acquire(&dir_lock);
   if (lookup (dir, name, &e, NULL))
     *inode = inode_open (e.inode_sector);
   else
     *inode = NULL;
+  lock_release(&dir_lock);
 
   return *inode != NULL;
 }
@@ -151,7 +162,7 @@ dir_add (struct dir *dir, const char *name, disk_sector_t inode_sector)
   bool success = false;
 
   // Lås
-  lock_acquire(&dir->dir_lock);
+  lock_acquire(&dir_lock);
   ASSERT (dir != NULL);
   ASSERT (name != NULL);
 
@@ -184,7 +195,7 @@ dir_add (struct dir *dir, const char *name, disk_sector_t inode_sector)
   success = inode_write_at (dir->inode, &e, sizeof e, ofs) == sizeof e;
 
  done:
-  lock_release(&dir->dir_lock);
+  lock_release(&dir_lock);
   return success;
 }
 
@@ -200,7 +211,7 @@ dir_remove (struct dir *dir, const char *name)
   off_t ofs;
 
   // Lås
-  lock_acquire(&dir->dir_lock);
+  lock_acquire(&dir_lock);
   ASSERT (dir != NULL);
   ASSERT (name != NULL);
 
@@ -225,7 +236,7 @@ dir_remove (struct dir *dir, const char *name)
   // Lås upp
  done:
   inode_close (inode);
-  lock_release(&dir->dir_lock);
+  lock_release(&dir_lock);
   return success;
 }
 

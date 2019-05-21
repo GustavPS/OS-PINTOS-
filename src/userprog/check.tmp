@@ -61,12 +61,228 @@ pintos -v -k -T 60 --qemu  --fs-disk=2 -p tests/userprog/multi-child-fd -a multi
 pintos -v -k -T 60 --qemu  --fs-disk=2 -p tests/filesys/base/lg-create -a lg-create -- -q  -F=10000  -f run lg-create < /dev/null 2> tests/filesys/base/lg-create.errors > tests/filesys/base/lg-create.allput
 pintos -v -k -T 60 --qemu  --fs-disk=2 -p tests/filesys/base/lg-full -a lg-full -- -q  -F=10000  -f run lg-full < /dev/null 2> tests/filesys/base/lg-full.errors > tests/filesys/base/lg-full.allput
 pintos -v -k -T 60 --qemu  --fs-disk=2 -p tests/filesys/base/lg-random -a lg-random -- -q  -F=10000  -f run lg-random < /dev/null 2> tests/filesys/base/lg-random.errors > tests/filesys/base/lg-random.allput
-../../tests/Make.tests:105: recipe for target 'tests/userprog/wait-bad-pid.output' failed
-../../tests/Make.tests:105: recipe for target 'tests/klaar/pfs.output' failed
-../../tests/Make.tests:105: recipe for target 'tests/userprog/multi-child-fd.output' failed
-../../tests/Make.tests:105: recipe for target 'tests/filesys/base/lg-create.output' failed
-../../tests/Make.tests:105: recipe for target 'tests/filesys/base/lg-full.output' failed
-../../tests/Make.tests:105: recipe for target 'tests/filesys/base/lg-random.output' failed
-../../tests/Make.tests:105: recipe for target 'tests/userprog/wait-simple.output' failed
-../../tests/Make.tests:105: recipe for target 'tests/userprog/multi-recurse.output' failed
-../Makefile.kernel:10: recipe for target 'check' failed
+pintos -v -k -T 60 --qemu  --fs-disk=2 -p tests/filesys/base/lg-seq-block -a lg-seq-block -- -q  -F=10000  -f run lg-seq-block < /dev/null 2> tests/filesys/base/lg-seq-block.errors > tests/filesys/base/lg-seq-block.allput
+pintos -v -k -T 60 --qemu  --fs-disk=2 -p tests/filesys/base/lg-seq-random -a lg-seq-random -- -q  -F=10000  -f run lg-seq-random < /dev/null 2> tests/filesys/base/lg-seq-random.errors > tests/filesys/base/lg-seq-random.allput
+pintos -v -k -T 60 --qemu  --fs-disk=2 -p tests/filesys/base/sm-create -a sm-create -- -q  -F=10000  -f run sm-create < /dev/null 2> tests/filesys/base/sm-create.errors > tests/filesys/base/sm-create.allput
+pintos -v -k -T 60 --qemu  --fs-disk=2 -p tests/filesys/base/sm-full -a sm-full -- -q  -F=10000  -f run sm-full < /dev/null 2> tests/filesys/base/sm-full.errors > tests/filesys/base/sm-full.allput
+pintos -v -k -T 60 --qemu  --fs-disk=2 -p tests/filesys/base/sm-random -a sm-random -- -q  -F=10000  -f run sm-random < /dev/null 2> tests/filesys/base/sm-random.errors > tests/filesys/base/sm-random.allput
+pintos -v -k -T 60 --qemu  --fs-disk=2 -p tests/filesys/base/sm-seq-block -a sm-seq-block -- -q  -F=10000  -f run sm-seq-block < /dev/null 2> tests/filesys/base/sm-seq-block.errors > tests/filesys/base/sm-seq-block.allput
+pintos -v -k -T 60 --qemu  --fs-disk=2 -p tests/filesys/base/sm-seq-random -a sm-seq-random -- -q  -F=10000  -f run sm-seq-random < /dev/null 2> tests/filesys/base/sm-seq-random.errors > tests/filesys/base/sm-seq-random.allput
+pintos -v -k -T 300 --qemu  --fs-disk=2 -p tests/filesys/base/syn-read -a syn-read -p tests/filesys/base/child-syn-read -a child-syn-read -- -q  -F=10000  -f run syn-read < /dev/null 2> tests/filesys/base/syn-read.errors > tests/filesys/base/syn-read.allput
+pintos -v -k -T 60 --qemu  --fs-disk=2 -p tests/filesys/base/syn-remove -a syn-remove -- -q  -F=10000  -f run syn-remove < /dev/null 2> tests/filesys/base/syn-remove.errors > tests/filesys/base/syn-remove.allput
+pintos -v -k -T 60 --qemu  --fs-disk=2 -p tests/filesys/base/syn-write -a syn-write -p tests/filesys/base/child-syn-wrt -a child-syn-wrt -- -q  -F=10000  -f run syn-write < /dev/null 2> tests/filesys/base/syn-write.errors > tests/filesys/base/syn-write.allput
+perl -I../.. ../../tests/klaar/read-bad-buf.ck tests/klaar/read-bad-buf tests/klaar/read-bad-buf.result
+pass tests/klaar/read-bad-buf
+perl -I../.. ../../tests/klaar/low-mem.ck tests/klaar/low-mem tests/klaar/low-mem.result
+pass tests/klaar/low-mem
+perl -I../.. ../../tests/klaar/exec-corrupt.ck tests/klaar/exec-corrupt tests/klaar/exec-corrupt.result
+pass tests/klaar/exec-corrupt
+perl -I../.. ../../tests/filst/sc-bad-write.ck tests/filst/sc-bad-write tests/filst/sc-bad-write.result
+perl -I../.. ../../tests/userprog/args-none.ck tests/userprog/args-none tests/userprog/args-none.result
+pass tests/userprog/args-none
+perl -I../.. ../../tests/userprog/args-single.ck tests/userprog/args-single tests/userprog/args-single.result
+pass tests/filst/sc-bad-write
+perl -I../.. ../../tests/userprog/args-multiple.ck tests/userprog/args-multiple tests/userprog/args-multiple.result
+pass tests/userprog/args-single
+perl -I../.. ../../tests/userprog/args-many.ck tests/userprog/args-many tests/userprog/args-many.result
+pass tests/userprog/args-multiple
+perl -I../.. ../../tests/userprog/args-dbl-space.ck tests/userprog/args-dbl-space tests/userprog/args-dbl-space.result
+perl -I../.. ../../tests/userprog/sc-bad-sp.ck tests/userprog/sc-bad-sp tests/userprog/sc-bad-sp.result
+pass tests/userprog/args-many
+perl -I../.. ../../tests/userprog/sc-bad-arg.ck tests/userprog/sc-bad-arg tests/userprog/sc-bad-arg.result
+pass tests/userprog/args-dbl-space
+perl -I../.. ../../tests/userprog/sc-boundary.ck tests/userprog/sc-boundary tests/userprog/sc-boundary.result
+perl -I../.. ../../tests/userprog/sc-boundary-2.ck tests/userprog/sc-boundary-2 tests/userprog/sc-boundary-2.result
+pass tests/userprog/sc-bad-sp
+perl -I../.. ../../tests/userprog/halt.ck tests/userprog/halt tests/userprog/halt.result
+pass tests/userprog/sc-bad-arg
+perl -I../.. ../../tests/userprog/exit.ck tests/userprog/exit tests/userprog/exit.result
+pass tests/userprog/sc-boundary
+perl -I../.. ../../tests/userprog/create-normal.ck tests/userprog/create-normal tests/userprog/create-normal.result
+pass tests/userprog/sc-boundary-2
+perl -I../.. ../../tests/userprog/create-empty.ck tests/userprog/create-empty tests/userprog/create-empty.result
+pass tests/userprog/halt
+perl -I../.. ../../tests/userprog/create-null.ck tests/userprog/create-null tests/userprog/create-null.result
+pass tests/userprog/exit
+perl -I../.. ../../tests/userprog/create-bad-ptr.ck tests/userprog/create-bad-ptr tests/userprog/create-bad-ptr.result
+pass tests/userprog/create-normal
+perl -I../.. ../../tests/userprog/create-long.ck tests/userprog/create-long tests/userprog/create-long.result
+pass tests/userprog/create-empty
+perl -I../.. ../../tests/userprog/create-exists.ck tests/userprog/create-exists tests/userprog/create-exists.result
+pass tests/userprog/create-null
+perl -I../.. ../../tests/userprog/create-bound.ck tests/userprog/create-bound tests/userprog/create-bound.result
+pass tests/userprog/create-bad-ptr
+perl -I../.. ../../tests/userprog/open-normal.ck tests/userprog/open-normal tests/userprog/open-normal.result
+pass tests/userprog/create-long
+perl -I../.. ../../tests/userprog/open-missing.ck tests/userprog/open-missing tests/userprog/open-missing.result
+pass tests/userprog/create-exists
+perl -I../.. ../../tests/userprog/open-boundary.ck tests/userprog/open-boundary tests/userprog/open-boundary.result
+pass tests/userprog/create-bound
+perl -I../.. ../../tests/userprog/open-empty.ck tests/userprog/open-empty tests/userprog/open-empty.result
+pass tests/userprog/open-normal
+perl -I../.. ../../tests/userprog/open-null.ck tests/userprog/open-null tests/userprog/open-null.result
+pass tests/userprog/open-missing
+perl -I../.. ../../tests/userprog/open-bad-ptr.ck tests/userprog/open-bad-ptr tests/userprog/open-bad-ptr.result
+pass tests/userprog/open-boundary
+perl -I../.. ../../tests/userprog/open-twice.ck tests/userprog/open-twice tests/userprog/open-twice.result
+pass tests/userprog/open-empty
+perl -I../.. ../../tests/userprog/close-normal.ck tests/userprog/close-normal tests/userprog/close-normal.result
+pass tests/userprog/open-null
+pass tests/userprog/open-bad-ptr
+perl -I../.. ../../tests/userprog/close-twice.ck tests/userprog/close-twice tests/userprog/close-twice.result
+perl -I../.. ../../tests/userprog/close-stdin.ck tests/userprog/close-stdin tests/userprog/close-stdin.result
+pass tests/userprog/open-twice
+perl -I../.. ../../tests/userprog/close-stdout.ck tests/userprog/close-stdout tests/userprog/close-stdout.result
+pass tests/userprog/close-normal
+perl -I../.. ../../tests/userprog/close-bad-fd.ck tests/userprog/close-bad-fd tests/userprog/close-bad-fd.result
+pass tests/userprog/close-stdin
+pass tests/userprog/close-twice
+perl -I../.. ../../tests/userprog/read-normal.ck tests/userprog/read-normal tests/userprog/read-normal.result
+perl -I../.. ../../tests/userprog/read-bad-ptr.ck tests/userprog/read-bad-ptr tests/userprog/read-bad-ptr.result
+pass tests/userprog/close-stdout
+perl -I../.. ../../tests/userprog/read-boundary.ck tests/userprog/read-boundary tests/userprog/read-boundary.result
+pass tests/userprog/close-bad-fd
+perl -I../.. ../../tests/userprog/read-zero.ck tests/userprog/read-zero tests/userprog/read-zero.result
+pass tests/userprog/read-normal
+pass tests/userprog/read-bad-ptr
+perl -I../.. ../../tests/userprog/read-stdout.ck tests/userprog/read-stdout tests/userprog/read-stdout.result
+perl -I../.. ../../tests/userprog/read-bad-fd.ck tests/userprog/read-bad-fd tests/userprog/read-bad-fd.result
+pass tests/userprog/read-boundary
+perl -I../.. ../../tests/userprog/write-normal.ck tests/userprog/write-normal tests/userprog/write-normal.result
+pass tests/userprog/read-zero
+perl -I../.. ../../tests/userprog/write-bad-ptr.ck tests/userprog/write-bad-ptr tests/userprog/write-bad-ptr.result
+pass tests/userprog/read-bad-fd
+pass tests/userprog/read-stdout
+perl -I../.. ../../tests/userprog/write-boundary.ck tests/userprog/write-boundary tests/userprog/write-boundary.result
+perl -I../.. ../../tests/userprog/write-zero.ck tests/userprog/write-zero tests/userprog/write-zero.result
+pass tests/userprog/write-normal
+perl -I../.. ../../tests/userprog/write-stdin.ck tests/userprog/write-stdin tests/userprog/write-stdin.result
+pass tests/userprog/write-bad-ptr
+perl -I../.. ../../tests/userprog/write-bad-fd.ck tests/userprog/write-bad-fd tests/userprog/write-bad-fd.result
+pass tests/userprog/write-zero
+pass tests/userprog/write-boundary
+perl -I../.. ../../tests/userprog/exec-once.ck tests/userprog/exec-once tests/userprog/exec-once.result
+perl -I../.. ../../tests/userprog/exec-arg.ck tests/userprog/exec-arg tests/userprog/exec-arg.result
+pass tests/userprog/write-stdin
+perl -I../.. ../../tests/userprog/exec-multiple.ck tests/userprog/exec-multiple tests/userprog/exec-multiple.result
+pass tests/userprog/write-bad-fd
+perl -I../.. ../../tests/userprog/exec-missing.ck tests/userprog/exec-missing tests/userprog/exec-missing.result
+pass tests/userprog/exec-once
+perl -I../.. ../../tests/userprog/exec-bad-ptr.ck tests/userprog/exec-bad-ptr tests/userprog/exec-bad-ptr.result
+pass tests/userprog/exec-arg
+perl -I../.. ../../tests/userprog/wait-simple.ck tests/userprog/wait-simple tests/userprog/wait-simple.result
+pass tests/userprog/exec-multiple
+perl -I../.. ../../tests/userprog/wait-twice.ck tests/userprog/wait-twice tests/userprog/wait-twice.result
+pass tests/userprog/exec-missing
+perl -I../.. ../../tests/userprog/wait-killed.ck tests/userprog/wait-killed tests/userprog/wait-killed.result
+pass tests/userprog/wait-simple
+perl -I../.. ../../tests/userprog/wait-bad-pid.ck tests/userprog/wait-bad-pid tests/userprog/wait-bad-pid.result
+pass tests/userprog/exec-bad-ptr
+perl -I../.. ../../tests/userprog/multi-recurse.ck tests/userprog/multi-recurse tests/userprog/multi-recurse.result
+perl -I../.. ../../tests/userprog/multi-child-fd.ck tests/userprog/multi-child-fd tests/userprog/multi-child-fd.result
+pass tests/userprog/wait-twice
+perl -I../.. ../../tests/filesys/base/lg-create.ck tests/filesys/base/lg-create tests/filesys/base/lg-create.result
+pass tests/userprog/wait-killed
+perl -I../.. ../../tests/filesys/base/lg-full.ck tests/filesys/base/lg-full tests/filesys/base/lg-full.result
+pass tests/userprog/wait-bad-pid
+perl -I../.. ../../tests/filesys/base/lg-random.ck tests/filesys/base/lg-random tests/filesys/base/lg-random.result
+pass tests/userprog/multi-recurse
+perl -I../.. ../../tests/filesys/base/lg-seq-block.ck tests/filesys/base/lg-seq-block tests/filesys/base/lg-seq-block.result
+pass tests/userprog/multi-child-fd
+perl -I../.. ../../tests/filesys/base/lg-seq-random.ck tests/filesys/base/lg-seq-random tests/filesys/base/lg-seq-random.result
+pass tests/filesys/base/lg-full
+perl -I../.. ../../tests/filesys/base/sm-create.ck tests/filesys/base/sm-create tests/filesys/base/sm-create.result
+pass tests/filesys/base/lg-create
+perl -I../.. ../../tests/filesys/base/sm-full.ck tests/filesys/base/sm-full tests/filesys/base/sm-full.result
+pass tests/filesys/base/lg-random
+perl -I../.. ../../tests/filesys/base/sm-random.ck tests/filesys/base/sm-random tests/filesys/base/sm-random.result
+pass tests/filesys/base/lg-seq-block
+perl -I../.. ../../tests/filesys/base/sm-seq-block.ck tests/filesys/base/sm-seq-block tests/filesys/base/sm-seq-block.result
+pass tests/filesys/base/lg-seq-random
+perl -I../.. ../../tests/filesys/base/sm-seq-random.ck tests/filesys/base/sm-seq-random tests/filesys/base/sm-seq-random.result
+pass tests/filesys/base/sm-create
+perl -I../.. ../../tests/filesys/base/syn-remove.ck tests/filesys/base/syn-remove tests/filesys/base/syn-remove.result
+pass tests/filesys/base/sm-full
+pass tests/filesys/base/sm-random
+pass tests/filesys/base/sm-seq-random
+pass tests/filesys/base/sm-seq-block
+pass tests/filesys/base/syn-remove
+perl -I../.. ../../tests/filesys/base/syn-write.ck tests/filesys/base/syn-write tests/filesys/base/syn-write.result
+pass tests/filesys/base/syn-write
+perl -I../.. ../../tests/filesys/base/syn-read.ck tests/filesys/base/syn-read tests/filesys/base/syn-read.result
+pass tests/filesys/base/syn-read
+perl -I../.. ../../tests/klaar/pfs.ck tests/klaar/pfs tests/klaar/pfs.result
+pass tests/klaar/pfs
+pass tests/klaar/read-bad-buf
+pass tests/klaar/low-mem
+pass tests/klaar/exec-corrupt
+pass tests/klaar/pfs
+pass tests/filst/sc-bad-write
+pass tests/userprog/args-none
+pass tests/userprog/args-single
+pass tests/userprog/args-multiple
+pass tests/userprog/args-many
+pass tests/userprog/args-dbl-space
+pass tests/userprog/sc-bad-sp
+pass tests/userprog/sc-bad-arg
+pass tests/userprog/sc-boundary
+pass tests/userprog/sc-boundary-2
+pass tests/userprog/halt
+pass tests/userprog/exit
+pass tests/userprog/create-normal
+pass tests/userprog/create-empty
+pass tests/userprog/create-null
+pass tests/userprog/create-bad-ptr
+pass tests/userprog/create-long
+pass tests/userprog/create-exists
+pass tests/userprog/create-bound
+pass tests/userprog/open-normal
+pass tests/userprog/open-missing
+pass tests/userprog/open-boundary
+pass tests/userprog/open-empty
+pass tests/userprog/open-null
+pass tests/userprog/open-bad-ptr
+pass tests/userprog/open-twice
+pass tests/userprog/close-normal
+pass tests/userprog/close-twice
+pass tests/userprog/close-stdin
+pass tests/userprog/close-stdout
+pass tests/userprog/close-bad-fd
+pass tests/userprog/read-normal
+pass tests/userprog/read-bad-ptr
+pass tests/userprog/read-boundary
+pass tests/userprog/read-zero
+pass tests/userprog/read-stdout
+pass tests/userprog/read-bad-fd
+pass tests/userprog/write-normal
+pass tests/userprog/write-bad-ptr
+pass tests/userprog/write-boundary
+pass tests/userprog/write-zero
+pass tests/userprog/write-stdin
+pass tests/userprog/write-bad-fd
+pass tests/userprog/exec-once
+pass tests/userprog/exec-arg
+pass tests/userprog/exec-multiple
+pass tests/userprog/exec-missing
+pass tests/userprog/exec-bad-ptr
+pass tests/userprog/wait-simple
+pass tests/userprog/wait-twice
+pass tests/userprog/wait-killed
+pass tests/userprog/wait-bad-pid
+pass tests/userprog/multi-recurse
+pass tests/userprog/multi-child-fd
+pass tests/filesys/base/lg-create
+pass tests/filesys/base/lg-full
+pass tests/filesys/base/lg-random
+pass tests/filesys/base/lg-seq-block
+pass tests/filesys/base/lg-seq-random
+pass tests/filesys/base/sm-create
+pass tests/filesys/base/sm-full
+pass tests/filesys/base/sm-random
+pass tests/filesys/base/sm-seq-block
+pass tests/filesys/base/sm-seq-random
+pass tests/filesys/base/syn-read
+pass tests/filesys/base/syn-remove
+pass tests/filesys/base/syn-write
+All 71 tests passed.
+make[1]: Leaving directory '/home/gustav/Documents/TDIU16/pintos/src/userprog/build'

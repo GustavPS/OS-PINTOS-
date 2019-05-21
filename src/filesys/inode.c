@@ -7,6 +7,7 @@
 #include "filesys/free-map.h"
 #include "threads/malloc.h"
 #include "threads/synch.h"
+#include "directory.h"
 
 
 /* Identifies an inode. */
@@ -75,6 +76,7 @@ inode_init (void)
 {
   list_init (&open_inodes);
   lock_init(&inode_global_lock);
+  dir_init();
 }
 
 /* Initializes an inode with LENGTH bytes of data and
@@ -174,12 +176,12 @@ struct inode *
 inode_reopen (struct inode *inode)
 {
   // Kanske behöver låsas, inode kan ändras medans den kör, men är det ens möjligt då vi låser for-loopen över?
-  //lock_acquire(&inode->inode_lock);
+  lock_acquire(&inode->inode_lock);
   if (inode != NULL)
   {
     inode->open_cnt++;
   }
-  //lock_release(&inode->inode_lock);
+  lock_release(&inode->inode_lock);
   return inode;
 }
 
@@ -201,7 +203,10 @@ inode_close (struct inode *inode)
   if (inode != NULL) {
 
     /* Release resources if this was the last opener. */
-    if (--inode->open_cnt == 0) {
+    lock_acquire(&inode->inode_lock);
+    --inode->open_cnt;
+    lock_release(&inode->inode_lock);
+    if (inode->open_cnt == 0) {
       /* Remove from inode list. */
       list_remove(&inode->elem);
 
