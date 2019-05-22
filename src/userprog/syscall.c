@@ -71,15 +71,18 @@ bool verify_variable_length(char* start)
   void* first_addr;
   char* curr = start;
   bool found_end = false;
+  bool result = false;
   while (!found_end) {
     first_addr = pg_round_down((void*)curr); // Hämta första adressen i pagen som curr ligger i
     if (pagedir_get_page(thread_current()->pagedir, first_addr) == NULL) { // Om den fysiska adressem är ogiltig returnera false
-      return false;
+      result = false;
+      break;
     }
     int start_page = pg_no(curr); // Hämta pagensom curr ligger på.
     int curr_page = start_page;
     while (curr_page == start_page) {
       if (*curr == '\0') { // Kolla om vi har kommit till \0, om vi har det så sätt found_end till true så vi går ut ur loopen.
+        result = !is_kernel_vaddr(curr);
         found_end = true;
         break;
       }
@@ -88,17 +91,17 @@ bool verify_variable_length(char* start)
       curr_page = pg_no(curr);
     }
   }
-  return true;
+  return result;
 }
 
 bool pointer_validation(void* p, size_t length)
 {
-  return !(p == NULL || is_kernel_vaddr(p) || !verify_fix_length(p, length));
+  return !(p == NULL || is_kernel_vaddr(((char*) p) + length) || !verify_fix_length(p, length));
 }
 
 bool variable_validation(char* p)
 {
-  return !(p == NULL || is_kernel_vaddr(p) || !verify_variable_length(p));
+  return !(p == NULL || !verify_variable_length(p));
 }
 
 // Returns fp or NULL
